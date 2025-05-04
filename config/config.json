@@ -1,0 +1,8 @@
+{
+  "input_file": "latex_docs/komplex.tex",
+  "output_file": "output/test_output.tex",
+  "output_folder": "output/",
+  "pdflatex_path": "C:/Users/fatih/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe",
+  "output_format" : "latex",
+  "keep_intermediate_files": false
+}
