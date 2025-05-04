@@ -10,8 +10,6 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 
 ## Features
 
-$E = mc^2$
-
 ### Unterstützte Makros
 
 | Makro                | Beispiel                        | Ergebnis (LaTeX)                    |
