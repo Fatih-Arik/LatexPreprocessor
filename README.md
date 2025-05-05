@@ -62,7 +62,7 @@ Hallo Welt! \( \frac{1}{2} \)
 
 * nlohmann/json – bereits im Projekt enthalten (json.hpp)
 
-* Für PDF-Ausgabe: pdflatex
+* Für PDF-Ausgabe: z. B. pdflatex
 
 ### Kompilierung
 
