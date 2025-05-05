@@ -19,8 +19,8 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 | `abs(x)`            | `abs(-1)`                        | `\left\|-1\right\|`                  |
 | `log(x)`            | `log(n)`                         | `\log{n}`                            |
 | `pow(x, y)`         | `pow(x, 2)`                      | `{x}^{2}`                            |
-| `#math(...)`        | `#math(frac(1,2))`               | `\( \frac{1}{2} \)`                  |
-| `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[ \frac{1}{2} \]`                  |
+| `#math(...)`        | `#math(frac(1,2))`               | `\(\frac{1}{2}\)`                    |
+| `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
 | `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
 
 ---
@@ -51,9 +51,9 @@ Hallo Welt! #math(frac(1, 2))
 \author{Max Mustermann}
 
 \section{Einleitung}
-Hallo Welt! \( \frac{1}{2} \)
+Hallo Welt! \(\frac{1}{2}\)
 
-\[ \sqrt{n^2} \]
+\[\sqrt{n^2}\]
 ```
 
 ### Anforderungen
