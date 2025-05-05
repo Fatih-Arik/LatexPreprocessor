@@ -37,7 +37,7 @@ void save_to_file(const std::string& filename, const std::string& content) {
     }
     out << content;
     out.close();
-    std::cout << "✅ Datei gespeichert: " << filename << "\n";
+    std::cout << "Datei gespeichert: " << filename << "\n";
 }
 
 // Liest den Inhalt einer JSON-Datei und gibt das JSON-Objekt zurück.
@@ -55,12 +55,13 @@ nlohmann::json read_json_config(const std::string& filename) {
     std::cout << "Lade JSON aus: " << config_path << "\n";
     std::ifstream file(config_path);
     if (!file) {
-        std::cerr << "⚠ Fehler: Konnte: " << config_path.string() << "nicht öffnen!\n";
+        std::cerr << "Fehler: Konnte: " << config_path.string() << "nicht öffnen!\n";
         return nlohmann::json();   // Gibt ein leeres JSON-Objekt zurück
     }
-
+   
     nlohmann::json config;
     file >> config;  // Datei in JSON-Objekt einlesen
+    
     return config;
 
 }

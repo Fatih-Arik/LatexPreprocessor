@@ -12,31 +12,31 @@
  
 
 /**
- * Ersetzt alle `#include "filename"`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
+ * Ersetzt alle `##include "filename"`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
  *
  * Die Funktion durchsucht den Text zeilenweise nach Include-Direktiven und ersetzt sie mit dem Inhalt
  * der jeweils referenzierten Datei. Dabei werden nur gültige Zeilen berücksichtigt,
- * die dem Muster `#include "pfad/zur/datei.tex"` entsprechen.
+ * die dem Muster `##include "pfad/zur/datei.tex"` entsprechen.
  *
  * Parameter:
  *     content – Der vollständige LaTeX-Text, in dem Includes verarbeitet werden sollen.
  *
  * Rückgabe:
- *     Ein neuer Text, in dem alle `#include`-Anweisungen ersetzt wurden.
+ *     Ein neuer Text, in dem alle `##include`-Anweisungen ersetzt wurden.
  */
 
 std::string process_include(const std::string& content) {
 
 
-    // #include "(.*?)"
-    // #include -> Sucht nach dem Schlüsselwort `#include`
+    // ##include "(.*?)"
+    // ##include -> Sucht nach dem Schlüsselwort `#include`
     // " -> Erwartet ein doppeltes Anführungszeichen (escaped als \" in C++)
     // (.*?) -> Greift den Dateinamen ab:
-    //   . → Beliebiges Zeichen (auch Leerzeichen)
+    //   . -> Beliebiges Zeichen (auch Leerzeichen)
     //   * -> Beliebig viele Zeichen (einschließlich keiner)
     //   ? -> Minimal greedy: Nimmt nur so viele Zeichen, bis das nächste `"` erscheint
     // " -> Erwartet das schließende Anführungszeichen
-    std::regex include_regex("#include \"(.*?)\"");
+    std::regex include_regex("##include \"(.*?)\"");
     std::stringstream result;
     std::istringstream stream(content);
     std::string line;
@@ -60,14 +60,14 @@ std::string process_include(const std::string& content) {
 
 
 /**
- * Extrahiert alle `#define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
+ * Extrahiert alle `##define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
  *
  * Ein Makro muss im Format `#define NAME WERT` vorliegen.
  * Zeilen, die diesem Muster entsprechen, werden analysiert und gesammelt.
  *
  * Beispiel:
- *     #define AUTHOR Max Mustermann
- *     → Makro["AUTHOR"] = "Max Mustermann"
+ *     ##define AUTHOR Max Mustermann
+ *     -> Makro["AUTHOR"] = "Max Mustermann"
  *
  * Parameter:
  *     content – Der vollständige Eingabetext, in dem nach Makros gesucht wird.
@@ -76,15 +76,15 @@ std::string process_include(const std::string& content) {
  *     Eine HashMap (unordered_map), die alle gefundenen Makros enthält.
  */
 std::unordered_map<std::string, std::string> extract_defines(const std::string& content) {
-    // Regex zur Erkennung von `#define NAME Wert`
-    // #define\s+(\w+)\s+(.+)
-    // #define -> Schlüsselwort `#define`
+    // Regex zur Erkennung von `##define NAME Wert`
+    // ##define\s+(\w+)\s+(.+)
+    // ##define -> Schlüsselwort `##define`
     // \s+ -> Mindestens ein Leerzeichen
     // (\w+) -> Der Makroname (nur Buchstaben/Zahlen/Unterstriche)
     // \s+ -> Mindestens ein Leerzeichen zwischen Name und Wert
     // (.+) -> Der Wert des Makros (alles nach dem Namen)
 
-    std::regex define_regex("#define\\s+(\\w+)\\s+(.*)");
+    std::regex define_regex("##define\\s+(\\w+)\\s+(.*)");
     std::unordered_map<std::string, std::string> macros;
     std::istringstream stream(content); 
 
@@ -114,7 +114,7 @@ std::unordered_map<std::string, std::string> extract_defines(const std::string& 
 /**
  * Ersetzt im Text alle Makronamen durch ihre zugehörigen Werte aus der Makro-Tabelle.
  *
- * Jeder Eintrag im Makro-Dictionary (z. B. "NAME" → "Max Mustermann") wird im gesamten Text
+ * Jeder Eintrag im Makro-Dictionary (z. B. "NAME" -> "Max Mustermann") wird im gesamten Text
  * durch den entsprechenden Wert ersetzt – allerdings nur bei exakten Wortübereinstimmungen.
  *
  * Beispiel:
@@ -141,24 +141,24 @@ std::string replace_text_macros(const std::string& text, const std::unordered_ma
 }
 
 /**
- * Entfernt alle `#define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
+ * Entfernt alle `##define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
  *
- * Dabei wird jede Zeile, die mit `#define` beginnt, durch ein Platzhalter-Marker ersetzt
+ * Dabei wird jede Zeile, die mit `##define` beginnt, durch ein Platzhalter-Marker ersetzt
  * und anschließend vollständig entfernt. So bleiben keine unnötigen Leerzeilen im Text zurück.
  *
  * Parameter:
  *     text – Referenz auf den LaTeX-Text, aus dem Makros entfernt werden sollen.
  *
  * Rückgabe:
- *     Der bereinigte Text ohne `#define`-Makros und leere Makro-Zeilen.
+ *     Der bereinigte Text ohne `##define`-Makros und leere Makro-Zeilen.
  */
 std::string remove_defines(std::string& text) {
     // 1. Ersetze alle #define-Zeilen durch einen Platzhalter
     // ^          Zeilenanfang
-    // #define    Das wörtliche Schlüsselwort
+    // ##define    Das wörtliche Schlüsselwort
     // .*         Beliebige Zeichen bis zum Ende der Zeile
     // $          Zeilenende
-    std::regex macro_regex(R"(^#define.*$)");
+    std::regex macro_regex(R"(^##define.*$)");
     text = std::regex_replace(text, macro_regex, "+HIDDEN+");
 
     // 2. Entferne alle Zeilen, die nur aus dem Marker + evtl. Leerzeichen + \n bestehen
@@ -170,43 +170,6 @@ std::string remove_defines(std::string& text) {
     text = std::regex_replace(text, empty_line_regex, "");
 
     return text;
-}
-
-
-
-/**
- * Führt alle bekannten Makrovereinfachungen im Text aus.
- *
- * Diese Funktion verarbeitet vordefinierte mathematische Makros wie `frac`, `sqrt`, `abs` usw.,
- * sowie Inline- und Block-Mathematik (#math, #blockmath) und Codeblöcke (#codeblock).
- *
- * Beispiel:
- *   Eingabe: #math(frac(1, sqrt(2))) → Ausgabe: \( \frac{1}{\sqrt{2}} \)
- *
- * Parameter:
- *   - input: Der ursprüngliche Text mit Makros.
- *
- * Rückgabe:
- *   - Der vereinfachte Text mit allen Makros ersetzt durch gültige LaTeX-Syntax.
- */
-std::string simplify_all_macros(const std::string& input) {
-    std::string result = input;
-    std::vector<MacroSpec> known_macros = {
-     {"frac", 2, "\\frac{__0__}{__1__}"},
-     {"sqrt", 1, "\\sqrt{__0__}"},
-     {"abs", 1, "\\left|__0__\\right|"},
-     {"log", 1, "\\log{__0__}"},
-     {"pow", 2, "{__0__}^{__1__}"}
-    };
-
-    for (const auto& spec : known_macros) {
-        result = simplify_macro_spec(result, spec);
-    }
-
-    result = simplify_inline_math(result);
-    result = simplify_block_math(result);
-    result = simplify_codeblocks(result);
-    return result;
 }
 
 
@@ -291,21 +254,22 @@ std::string extract_codeblock_body(const std::string& text, size_t start_pos, si
  *
  * Beispiel:
  *     #codeblock[cpp]{int main() { return 0; }}
- *     → \begin{lstlisting}[language=cpp]
+ *     -> \begin{lstlisting}[language=cpp]
  *         int main() { return 0; }
  *       \end{lstlisting}
  *
  * Parameter:
  * - input: Der vollständige Eingabetext mit potenziellen Codeblöcken.
  *
- * Rückgabewert:
+ * Rückgabe:
  * - Der Text, in dem alle Codeblock-Makros durch LaTeX-kompatible Listings ersetzt wurden.
  */
 std::string simplify_codeblocks(const std::string& input) {
     
     std::string result = input;
     std::string code = "";
-    std::string replacement = "";
+    std::string latex_block = "";
+    std::string language = "";
     size_t pos = 0;
     size_t lang_end = 0;
     size_t brace_start = 0;
@@ -314,10 +278,10 @@ std::string simplify_codeblocks(const std::string& input) {
 
     while ((pos = result.find("#codeblock[", pos)) != std::string::npos) {
 
-        std::string language = extract_language(result, pos, lang_end);
+        language = extract_language(result, pos, lang_end);
        
         if (lang_end == std::string::npos) {
-            pos += 1;  // ungültige Syntax → weiter
+            pos += 1;  // ungültige Syntax -> weiter
             continue;
         }
 
@@ -340,15 +304,15 @@ std::string simplify_codeblocks(const std::string& input) {
         }
 
         // Latex-Befehl erzeugen
-        replacement =
+        latex_block =
             "\\begin{lstlisting}[language=" + language + "]\n" +
             code + "\n\\end{lstlisting}";
 
         // Ersetzen des ursprünglichen Makros durch das LaTeX-Listing
-        result.replace(pos, brace_end - pos + 1, replacement);
+        result.replace(pos, brace_end - pos + 1, latex_block);
 
         // Weiter hinter dem eingefügten Block
-        pos += replacement.length();
+        pos += latex_block.length();
     }
 
     return result;

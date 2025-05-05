@@ -34,3 +34,10 @@ std::string simplify_inline_math(const std::string& text);
 
 // Wandelt alle #blockmath(...)-Makros in LaTeX-Block-Mathe (\[...\]) um.
 std::string simplify_block_math(const std::string& text);
+
+
+// Gibt eine Liste der unterstützten Makrospezifikationen für LaTeX zurück.
+std::vector<MacroSpec> get_default_macros();
+
+// Führt alle bekannten Makrovereinfachungen im Text aus.
+std::string simplify_all_macros(const std::string& input);

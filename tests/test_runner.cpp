@@ -9,8 +9,7 @@
 void run_all_tests() {
     std::cout << "==== Starte Tests ====\n";
 
-    // Hier einzelne Tests aufrufen
-    // z.B.
+ 
     test_simplify_macro_spec();
     test_extract_math_args();
     test_codeblocks();
@@ -20,7 +19,7 @@ void run_all_tests() {
     std::cout << "==== Alle Tests abgeschlossen ====\n";
 }
 
-// Hier erste einfache Tests bauen!
+
 void test_simplify_macro_spec() {
     std::cout << "Teste simplify_macro_spec...\n";
 
@@ -29,15 +28,15 @@ void test_simplify_macro_spec() {
     std::string output = simplify_macro_spec(input, spec);
 
     if (output == "\\frac{1}{2}") {
-        std::cout << "✅ simplify_macro_spec OK\n";
+        std::cout << "simplify_macro_spec OK\n";
     }
     else {
-        std::cout << "❌ simplify_macro_spec Fehler: " << output << "\n";
+        std::cout << "simplify_macro_spec Fehler: " << output << "\n";
     }
 }
 
 void test_extract_math_args() {
-    std::cout << "🔍 Teste extract_math_args...\n";
+    std::cout << "Teste extract_math_args...\n";
 
     struct TestCase {
         std::string input;
@@ -60,17 +59,17 @@ void test_extract_math_args() {
         auto result = extract_math_args(test.input, test.start_pos, end_pos);
 
         std::cout << "Input: " << test.input << "\n";
-        std::cout << "→ Args: ";
+        std::cout << "-> Args: ";
         for (const auto& arg : result) std::cout << "[" << arg << "] ";
         std::cout << "\n";
         std::cout << "End_Pos: " << end_pos << "\n";
     }
 
-    std::cout << "✅ extract_math_args abgeschlossen.\n\n";
+    std::cout << "extract_math_args abgeschlossen.\n\n";
     
 }
 void test_codeblocks() {
-    std::cout << "🔍 Teste simplify_codeblocks...\n";
+    std::cout << "Teste simplify_codeblocks...\n";
 
     struct TestCase {
         std::string input;
@@ -96,17 +95,17 @@ void test_codeblocks() {
         std::string output = simplify_codeblocks(test.input);
 
         if (output == test.expected_output) {
-            std::cout << "✅ Test OK: " << test.input.substr(0, 30) << "...\n";
+            std::cout << "Test OK: " << test.input.substr(0, 30) << "...\n";
         }
         else {
-            std::cout << "❌ Fehler!\n";
+            std::cout << "Fehler!\n";
             std::cout << "Input:    " << test.input << "\n";
             std::cout << "Erwartet: " << test.expected_output << "\n";
             std::cout << "Bekommen: " << output << "\n";
         }
     }
 
-    std::cout << "✅ simplify_codeblocks abgeschlossen.\n\n";
+    std::cout << "simplify_codeblocks abgeschlossen.\n\n";
 }
 
 void test_simplify_inline_math() {
@@ -117,9 +116,9 @@ void test_simplify_inline_math() {
     std::string output = simplify_all_macros(input);
 
     if (output == expected)
-        std::cout << "✅ Inline-Mathe OK\n";
+        std::cout << "Inline-Mathe OK\n";
     else
-        std::cout << "❌ Inline-Mathe Fehler: " << output << "\n";
+        std::cout << "Inline-Mathe Fehler: " << output << "\n";
 }
 
 void test_simplify_block_math() {
@@ -130,7 +129,7 @@ void test_simplify_block_math() {
     
 
     if (output == expected)
-        std::cout << "✅ Block-Mathe OK\n";
+        std::cout << "Block - Mathe OK\n";
     else
-        std::cout << "❌ Block-Mathe Fehler: " << output << "\n";
+        std::cout << "Block-Mathe Fehler: " << output << "\n";
 }

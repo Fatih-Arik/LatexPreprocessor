@@ -10,11 +10,11 @@
 
 
 
-// Ersetzt alle `#include "filename"`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
+// Ersetzt alle `##include "filename"`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
 std::string process_include(const std::string& content);
 
 
- // Extrahiert alle `#define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
+ // Extrahiert alle `##define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
 std::unordered_map<std::string, std::string> extract_defines(const std::string& content);
 
 
@@ -22,12 +22,8 @@ std::unordered_map<std::string, std::string> extract_defines(const std::string& 
 std::string replace_text_macros(const std::string& text, const std::unordered_map<std::string, std::string>& macros);
 
 
-// Entfernt alle `#define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
+// Entfernt alle `##define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
 std::string remove_defines(std::string& text);
-
-
-// Führt alle bekannten Makrovereinfachungen im Text aus.
-std::string simplify_all_macros(const std::string& input);
 
 
 // Extrahiert die Programmiersprache aus einem Codeblock-Makro

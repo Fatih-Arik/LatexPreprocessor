@@ -1,5 +1,7 @@
 
 #include "..\include\macro_utils.h"
+#include "..\include\preprocessor.h"
+
 
 #include <iostream>
 
@@ -42,7 +44,7 @@ std::vector<std::string> extract_math_args(const std::string& text, size_t start
             brace_depth--;
 
             if (brace_depth == 0) {
-                // Oberste Klammer geschlossen → Ausdruck ist zu Ende
+                // Oberste Klammer geschlossen -> Ausdruck ist zu Ende
                 result.push_back(arg);
                 end_pos = i; // setzen end_pos = i für die simplify_macros Funktion
                 return result;
@@ -61,7 +63,7 @@ std::vector<std::string> extract_math_args(const std::string& text, size_t start
         }
     }
 
-    // Falls keine schließende Klammer gefunden → Fehlerbehandlung
+    // Falls keine schließende Klammer gefunden -> Fehlerbehandlung
     end_pos = text.size();
     return {};
 }
@@ -155,8 +157,8 @@ std::string simplify_macro_spec(const std::string& text, const MacroSpec& spec) 
  * Wandelt Ausdrücke wie #math(...) oder #blockmath(...) in die entsprechende LaTeX-Umgebung um.
  *
  * Beispiel:
- *   #math(frac(1, 2))      → \(frac(1, 2)\)
- *   #blockmath(frac(1, 2)) → \[frac(1, 2)\]
+ *   #math(frac(1, 2))      -> \(frac(1, 2)\)
+ *   #blockmath(frac(1, 2)) -> \[frac(1, 2)\]
  *
  * Diese Funktion erkennt das passende Makro (#math oder #blockmath), extrahiert den Ausdruck
  * und umschließt ihn mit LaTeX-Inline- bzw. Block-Mathe-Klammern.
@@ -202,7 +204,7 @@ std::string simplify_math_wrapper(const std::string& text, bool is_block) {
  * Wandelt alle #math(...)-Makros in LaTeX-Inline-Mathe (\(...\)) um.
  *
  * Beispiel:
- *   #math(frac(1, 2)) → \( \frac{1}{2} \)
+ *   #math(frac(1, 2)) -> \( \frac{1}{2} \)
  *
  * Parameter:
  *   - text: Der Text mit #math-Ausdrücken.
@@ -218,7 +220,7 @@ std::string simplify_inline_math(const std::string& text) {
  * Wandelt alle #blockmath(...)-Makros in LaTeX-Block-Mathe (\[...\]) um.
  *
  * Beispiel:
- *   #blockmath(frac(1, 2)) → \[ \frac{1}{2} \]
+ *   #blockmath(frac(1, 2)) -> \[ \frac{1}{2} \]
  *
  * Parameter:
  *   - text: Der Text mit #blockmath-Ausdrücken.
@@ -228,5 +230,51 @@ std::string simplify_inline_math(const std::string& text) {
  */
 std::string simplify_block_math(const std::string& text) {
     return simplify_math_wrapper(text, true);
+}
+
+
+
+// Gibt eine Liste der unterstützten Makrospezifikationen für LaTeX zurück.
+// Diese Funktion definiert alle standardmäßig unterstützten Makros wie
+// frac(...), sqrt(...), abs(...) usw.
+//
+// Rückgabe:
+// - Vektor mit Makrodefinitionen (Name, Argumentanzahl, LaTeX-Format)
+std::vector<MacroSpec> get_default_macros() {
+    return {
+        {"frac", 2, "\\frac{__0__}{__1__}"},
+        {"sqrt", 1, "\\sqrt{__0__}"},
+        {"abs", 1, "\\left|__0__\\right|"},
+        {"log", 1, "\\log{__0__}"},
+        {"pow", 2, "{__0__}^{__1__}"}
+    };
+}
+
+/**
+ * Führt alle bekannten Makrovereinfachungen im Text aus.
+ *
+ * Diese Funktion verarbeitet vordefinierte mathematische Makros wie `frac`, `sqrt`, `abs` usw.,
+ * sowie Inline- und Block-Mathematik (#math, #blockmath) und Codeblöcke (#codeblock).
+ *
+ * Beispiel:
+ *   Eingabe: #math(frac(1, sqrt(2))) -> Ausgabe: \(\frac{1}{\sqrt{2}}\)
+ *
+ * Parameter:
+ *   - input: Der ursprüngliche Text mit Makros.
+ *
+ * Rückgabe:
+ *   - Der vereinfachte Text mit allen Makros ersetzt durch gültige LaTeX-Syntax.
+ */
+std::string simplify_all_macros(const std::string& input) {
+    std::string result = input;
+
+    for (const auto& spec : get_default_macros()) {
+        result = simplify_macro_spec(result, spec);
+    }
+
+    result = simplify_inline_math(result);
+    result = simplify_block_math(result);
+    result = simplify_codeblocks(result);
+    return result;
 }
 

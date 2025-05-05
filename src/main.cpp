@@ -9,6 +9,7 @@
 #include "../include/preprocessor.h"
 #include "../include/file_utils.h"
 #include "../include/converter.h"
+#include "../include/macro_utils.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -31,8 +32,8 @@ void log_step(const std::string& title, const std::string& content) {
 
 int run_preprocessor(const nlohmann::json& config) {
 
-    std::string input_file = config.value("input_file", "test/test_input.tex");
-    std::string output_file = config.value("output_file", "test/test_output.tex");
+    std::string input_file = config.value("input_file", "latex_docs/test_input.tex");
+    std::string output_file = config.value("output_file", "output/test_output.tex");
     std::string output_folder = config.value("output_folder", "output/");
     std::string pdflatex_path = config.value("pdflatex_path", "C:/Users/fatih/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe");
     std::string output_format = config.value("output_format", "latex"); 
@@ -58,8 +59,6 @@ int run_preprocessor(const nlohmann::json& config) {
     log_step("Text replaced", content);
 
 
-
-
     content = remove_defines(content);
     log_step("Defines removed", content);
 
@@ -70,16 +69,16 @@ int run_preprocessor(const nlohmann::json& config) {
 
 
     if (generate_pdf(output_folder, output_file, pdflatex_path) == 0) {
-        std::cout << "✅ PDF erfolgreich generiert!\n";
+        std::cout << "PDF erfolgreich generiert!\n";
 
         if (!keep_intermediate_files) {
             //TODO
             //cleanup_intermediate_files(output_folder, output_file);
-            std::cout << "🧹 Temporäre Dateien entfernt.\n";
+            std::cout << "Temporäre Dateien entfernt.\n";
         }
     }
     else {
-        std::cerr << "❌ Fehler beim Generieren der PDF!\n";
+        std::cerr << "Fehler beim Generieren der PDF!\n";
     }
     return 0;
 
@@ -93,7 +92,8 @@ int main() {
     
     std::cout << "Starte Latex Preprocessor...\n";
     nlohmann::json config = read_json_config("config/config.json");
-    std::cout << "📄 Konfiguration geladen. " << "\n";
+    std::cout << "Konfiguration geladen. " << "\n";
+
     run_preprocessor(config);
     return 0;
     #endif
