@@ -71,11 +71,11 @@ int run_preprocessor(const nlohmann::json& config) {
     if (generate_pdf(output_folder, output_file, pdflatex_path) == 0) {
         std::cout << "PDF erfolgreich generiert!\n";
 
-        if (!keep_intermediate_files) {
-            //TODO
-            //cleanup_intermediate_files(output_folder, output_file);
-            std::cout << "Temporäre Dateien entfernt.\n";
-        }
+        //if (!keep_intermediate_files) {
+        //    //TODO
+        //    //cleanup_intermediate_files(output_folder, output_file);
+        //    std::cout << "Temporäre Dateien entfernt.\n";
+        //}
     }
     else {
         std::cerr << "Fehler beim Generieren der PDF!\n";
