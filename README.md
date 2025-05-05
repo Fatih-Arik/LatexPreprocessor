@@ -100,7 +100,7 @@ Hinweise:
   
 ### Anforderungen
 
-* Ein C++ Compiler mit C++20/23-Unterstützun
+* Ein C++ Compiler mit C++20/23-Unterstützung
 
 * getestet in Visual Studio 
 
