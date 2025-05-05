@@ -31,9 +31,9 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 
 ---
 
-## Beispiel: Input 
+## Beispiel:
 
-### Eingabe (`input.tex`)
+### Eingabe 
 ```latex
 \title{Mein Dokument}
 \author{Max Mustermann}
@@ -45,7 +45,7 @@ Hallo Welt! #math(frac(1, 2))
 
 ```
 
-### Ausgabe (`input.tex`)
+### Ausgabe 
 ```latex
 \title{Mein Dokument}
 \author{Max Mustermann}
