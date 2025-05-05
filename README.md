@@ -76,7 +76,7 @@ int main() {
 \end{lstlisting}
 ```
 
-###config.json
+### Konfiguration(config.json)
 
 Die Konfiguration des Tools erfolgt über eine JSON-Datei wie z. B.:
 
@@ -107,5 +107,4 @@ Hinweise:
 * nlohmann/json – bereits im Projekt enthalten (json.hpp)
 
 * Für PDF-Ausgabe: z. B. pdflatex über MiKTeX
-
 
