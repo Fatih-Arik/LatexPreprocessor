@@ -22,8 +22,8 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 | `#math(...)`        | `#math(frac(1,2))`               | `\(\frac{1}{2}\)`                    |
 | `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
 | `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
-| `##define`          | `##define AUTHOR Max`            | Überall im Text wird die Konstante AUTHOR durch den Wert `Max` ersetzt|
-| `##include`         | `##include "mysection.tex"`      | fügt den Inhalt der Datei ein        |
+| `##define`          | `##define AUTHOR Max`            | ersetzt `AUTHOR` im gesamten Text    |
+| `##include`         | `##include "mysection.tex"`      | fügt Dateiinhalt ein                 |
 
 ---
 
@@ -34,7 +34,7 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 - JSON-Support mit [nlohmann/json](https://github.com/nlohmann/json) (MIT-Lizenz)
 ---
 
-## Beispiel: Input / Output
+## Beispiel: Eingabe/Ausgabe
 
 ### Eingabe
 
@@ -97,14 +97,22 @@ Hinweise:
 
 * pdflatex_path: Optional – ermöglicht PDF-Generierung direkt aus dem Tool (sofern installiert)
 
-  
-### Anforderungen
 
-* Ein C++ Compiler mit C++20/23-Unterstützung
+### Technologie
+* Sprache: C++ (modern, getestet mit C++20/C++23)
+
+* Entwicklungsumgebung: Visual Studio 2022
+
+Bibliotheken:
+
+    nlohmann/json für JSON-Parsing
+
+    Standardbibliothek (<regex>, <fstream>, <filesystem> etc.)
+### Anforderungen & PDF-Ausgabe
+
+* Ein C++ Compiler mit C++20 oder neuer (Visual Studio)
 
 * getestet in Visual Studio 
 
-* nlohmann/json – bereits im Projekt enthalten (json.hpp)
-
-* Für PDF-Ausgabe: pdflatex über MiKTeX
+* Optional: pdflatex zur PDF-Erzeugung aus der LaTeX-Zieldatei
 
