@@ -22,50 +22,97 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 | `#math(...)`        | `#math(frac(1,2))`               | `\(\frac{1}{2}\)`                    |
 | `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
 | `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
+| `##define`          | `##define AUTHOR Max`            | ersetzt `AUTHOR` im gesamten Text    |
+| `##include`         | `##include "mysection.tex"`      | fügt Dateiinhalt ein                 |
 
 ---
 
 ## Programmiersprache
 
-- **Sprache:** C++23 preview in VS (Visual Studio)
-
+- **Sprache:** C++ (C++20 / C++23, getestet mit Visual Studio)
+- **Compiler:** MSVC (via Visual Studio)
+- JSON-Support mit [nlohmann/json](https://github.com/nlohmann/json) (MIT-Lizenz)
 ---
 
-## Beispiel: Input 
+## Beispiel: Eingabe/Ausgabe
 
-### Eingabe (`input.tex`)
+### Eingabe
+
 ```latex
+##define AUTHOR Max
+
 \title{Mein Dokument}
-\author{Max Mustermann}
+\author{AUTHOR}
 
 \section{Einleitung}
 Hallo Welt! #math(frac(1, 2))
 
 #blockmath(sqrt(pow(n, 2)))
 
+#codeblock[cpp]{
+#include <iostream>
+int main() {
+    std::cout << "Hallo Welt!";
+}
+}
+
 ```
 
-### Ausgabe (`input.tex`)
+### Ausgabe 
 ```latex
 \title{Mein Dokument}
-\author{Max Mustermann}
+\author{Max}
 
 \section{Einleitung}
 Hallo Welt! \(\frac{1}{2}\)
 
-\[\sqrt{n^2}\]
+\[\sqrt{{n}^{2}}\]
+
+\begin{lstlisting}[language=cpp]
+#include <iostream>
+int main() {
+    std::cout << "Hallo Welt!";
+}
+\end{lstlisting}
 ```
 
-### Anforderungen
+### Konfiguration(config.json)
 
-* C++20-kompatibler Compiler (z. B. Visual Studio)
+Die Konfiguration des Tools erfolgt über eine JSON-Datei wie z. B.:
 
-* nlohmann/json – bereits im Projekt enthalten (json.hpp)
+```json
+{
+  "input_file": "input.tex",
+  "output_file": "output.tex",
+  "output_folder": "output/",
+  "pdflatex_path": "C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
+}
+```
 
-* Für PDF-Ausgabe: z. B. pdflatex
+Hinweise:
 
-### Kompilierung
+* input_file: Pfad zur Eingabedatei
 
-Visual Studio
-   
-    .sln-Datei öffnen → Projekt ausführen
+* output_file: Zielname für den konvertierten LaTeX-Code
+
+* pdflatex_path: Optional – ermöglicht PDF-Generierung direkt aus dem Tool (sofern installiert)
+
+
+### Technologie
+* Sprache: C++ (modern, getestet mit C++20/C++23)
+
+* Entwicklungsumgebung: Visual Studio 2022
+
+Bibliotheken:
+
+    nlohmann/json für JSON-Parsing
+
+    Standardbibliothek (<regex>, <fstream>, <filesystem> etc.)
+### Anforderungen & PDF-Ausgabe
+
+* Ein C++ Compiler mit C++20 oder neuer (Visual Studio)
+
+* getestet in Visual Studio 
+
+* Optional: pdflatex zur PDF-Erzeugung aus der LaTeX-Zieldatei
+
