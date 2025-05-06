@@ -13,7 +13,7 @@ int generate_pdf(const std::string& output_folder, const std::string& output_fil
 
 
     if (pdflatex_path.empty() || output_folder.empty() || output_file.empty()) {
-        std::cerr << "Fehler: Ungültige Eingabeparameter für generate_pdf()\n";
+        std::cerr << "Fehler: Ungültige Eingabeparameter für generate_pdf()" << "\n";
         return -1;
     }
 
