@@ -22,7 +22,7 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 | `#math(...)`        | `#math(frac(1,2))`               | `\(\frac{1}{2}\)`                    |
 | `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
 | `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
-| `##define`          | `##define AUTHOR Max`            | wird ersetzt durch `Max`             |
+| `##define`          | `##define AUTHOR Max`            | Überall im Text wird die Konstante AUTHOR durch den Wert `Max` ersetzt|
 | `##include`         | `##include "mysection.tex"`      | fügt den Inhalt der Datei ein        |
 
 ---
@@ -106,5 +106,5 @@ Hinweise:
 
 * nlohmann/json – bereits im Projekt enthalten (json.hpp)
 
-* Für PDF-Ausgabe: z. B. pdflatex über MiKTeX
+* Für PDF-Ausgabe: pdflatex über MiKTeX
 
