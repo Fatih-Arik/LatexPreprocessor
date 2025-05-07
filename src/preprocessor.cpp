@@ -281,6 +281,7 @@ std::string simplify_codeblocks(const std::string& input) {
         language = extract_language(result, pos, lang_end);
        
         if (lang_end == std::string::npos) {
+
             pos += 1;  // ungültige Syntax -> weiter
             continue;
         }
@@ -290,6 +291,7 @@ std::string simplify_codeblocks(const std::string& input) {
         // Suchen nach der öffnenden geschweiften Klammer '{'
         brace_start = result.find('{', lang_end);
         if (brace_start == std::string::npos) {
+            std::cerr << "+++ Fehler beim Finden der geöffneten Klammer [ { ] +++ " << "\n";
             pos += 1;
             continue;
         }
@@ -299,6 +301,7 @@ std::string simplify_codeblocks(const std::string& input) {
         code = extract_codeblock_body(result, brace_start, brace_end);
 
         if (code.empty()) {
+            std::cerr << "+++ Fehler beim Code Block +++ " << "\n";
             pos += 1;  // Ungültiger oder unvollständiger Block
             continue;
         }

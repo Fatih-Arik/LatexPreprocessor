@@ -14,7 +14,7 @@
 std::string read_file(const std::string& filename) {
     std::ifstream file(filename);  // Datei öffnen
     if (!file) {  // Falls die Datei nicht geöffnet werden kann
-        std::cerr << "Fehler: Datei konnte nicht geöffnet werden: " << filename << "\n";
+        std::cerr << "+++ Fehler: Datei konnte nicht geöffnet werden +++ : " << filename << "\n";
         return "";
     }
 
@@ -32,7 +32,7 @@ std::string read_file(const std::string& filename) {
 void save_to_file(const std::string& filename, const std::string& content) {
     std::ofstream out(filename);
     if (!out) {
-        std::cerr << "Fehler: Datei konnte nicht gespeichert werden!" << "\n";
+        std::cerr << "+++ Fehler: Datei konnte nicht gespeichert werden! +++" << "\n";
         return;
     }
     out << content;
@@ -55,7 +55,7 @@ nlohmann::json read_json_config(const std::string& filename) {
     std::cout << "Lade JSON aus: " << config_path << "\n";
     std::ifstream file(config_path);
     if (!file) {
-        std::cerr << "Fehler: Konnte: " << config_path.string() << "nicht öffnen!\n";
+        std::cerr << "+++ Fehler: Konnte: " << config_path.string() << "nicht öffnen! +++\n";
         return nlohmann::json();   // Gibt ein leeres JSON-Objekt zurück
     }
    

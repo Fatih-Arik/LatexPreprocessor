@@ -128,8 +128,8 @@ std::string simplify_macro_spec(const std::string& text, const MacroSpec& spec) 
 
         // Fehler: falsche Anzahl an Argumenten
         if (args.size() != spec.arg_count) {
-            std::cerr << "⚠️ Fehler bei '" << spec.name << "': erwartet " << spec.arg_count
-                << " Argument(e), aber " << args.size() << " gefunden.\n";
+            std::cerr << "+++ Fehler bei '" << spec.name << "': erwartet " << spec.arg_count
+                << " Argument(e), aber " << args.size() << " gefunden. +++\n";
             pos += 1;
             continue;
         }
