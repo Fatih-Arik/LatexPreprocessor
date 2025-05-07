@@ -1,10 +1,10 @@
 # LaTeX Preprocessor (C++)
 
-Dieses Projekt implementiert einen einfachen Präprozessor zur Umwandlung einer vereinfachten, LaTeX-ähnlichen Syntax in echtes LaTeX – z. B. zur Erzeugung von mathematischen Ausdrücken oder Quellcode-Blöcken.
+Dieses Projekt implementiert einen einfachen Präprozessor zur Umwandlung einer vereinfachten, LaTeX-ähnlichen Syntax in echtes LaTeX. Ziel ist es, mathematische Ausdrücke, Quellcode-Snippets und Inhalte effizienter zu schreiben.
 
 ## Motivation
 
-Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathematischen Formeln, Quellcode-Snippets und Befehlen zu vereinfachen.
+Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwendig sein. Dieses Tool vereinfacht die Nutzung typischer Konstrukte wie Brüche, Wurzeln oder Codeblöcke durch eine intuitive Makrosyntax.
 
 ---
 
@@ -27,14 +27,17 @@ Das Ziel des Projekts ist es, die Erstellung komplexer LaTeX-Dokumente mit mathe
 
 ---
 
-## Programmiersprache
+## Technologien
 
-- **Sprache:** C++ (C++20 / C++23, getestet mit Visual Studio)
+- **Sprache:** C++ (C++20 / C++23)
 - **Compiler:** MSVC (via Visual Studio)
-- JSON-Support mit [nlohmann/json](https://github.com/nlohmann/json) (MIT-Lizenz)
+- **Bibliotheken:**
+  - [`nlohmann/json`](https://github.com/nlohmann/json) (für Konfigurationsdateien)
+  - Standardbibliothek: `<regex>`, `<fstream>`, `<filesystem>`, etc.
+
 ---
 
-## Beispiel: Eingabe/Ausgabe
+## Beispiel
 
 ### Eingabe
 
@@ -78,8 +81,6 @@ int main() {
 
 ### Konfiguration(config.json)
 
-Die Konfiguration des Tools erfolgt über eine JSON-Datei wie z. B.:
-
 ```json
 {
   "input_file": "input.tex",
@@ -95,24 +96,13 @@ Hinweise:
 
 * output_file: Zielname für den konvertierten LaTeX-Code
 
-* pdflatex_path: Optional – ermöglicht PDF-Generierung direkt aus dem Tool (sofern installiert)
+* output_folder: Zielverzeichnis
+
+* pdflatex_path: Optional – Optional – erlaubt automatische PDF-Erzeugung
 
 
-### Technologie
-* Sprache: C++ (modern, getestet mit C++20/C++23)
+### Anforderungen 
 
-* Entwicklungsumgebung: Visual Studio 2022
+* C++20-kompatibler Compiler (z. B. Visual Studio 2022)
 
-Bibliotheken:
-
-    nlohmann/json für JSON-Parsing
-
-    Standardbibliothek (<regex>, <fstream>, <filesystem> etc.)
-### Anforderungen & PDF-Ausgabe
-
-* Ein C++ Compiler mit C++20 oder neuer (Visual Studio)
-
-* getestet in Visual Studio 
-
-* Optional: pdflatex zur PDF-Erzeugung aus der LaTeX-Zieldatei
-
+* Optional: pdflatex (für direkte PDF-Ausgabe)
