@@ -23,7 +23,7 @@ Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwe
 | `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
 | `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
 | `##define`          | `##define AUTHOR Max`            | ersetzt `AUTHOR` im gesamten Text    |
-| `##include`         | `##include "mysection.tex"`      | fügt Dateiinhalt ein                 |
+| `##include`         | `##include "mysection.tex"`      | fügt Dateiinhalte ein                 |
 
 ---
 
