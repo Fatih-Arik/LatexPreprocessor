@@ -54,4 +54,7 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="config\macros.json" />
+  </ItemGroup>
 </Project>

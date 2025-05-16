@@ -38,7 +38,7 @@ int run_preprocessor(const nlohmann::json& config) {
     std::string output_folder = config.value("output_folder", "output/");
     std::string pdflatex_path = config.value("pdflatex_path", "C:/Users/fatih/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe");
     std::string output_format = config.value("output_format", "latex"); 
-    bool keep_intermediate_files = config.value("keep_intermediate_files", false);
+    // ##TODO## bool keep_intermediate_files = config.value("keep_intermediate_files", false); 
 
 
     std::string content = read_file(input_file);

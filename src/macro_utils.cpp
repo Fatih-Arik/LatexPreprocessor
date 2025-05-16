@@ -1,6 +1,7 @@
 
 #include "..\include\macro_utils.h"
 #include "..\include\preprocessor.h"
+#include "..\include\file_utils.h"
 
 
 #include <iostream>
@@ -234,22 +235,6 @@ std::string simplify_block_math(const std::string& text) {
 
 
 
-// Gibt eine Liste der unterstützten Makrospezifikationen für LaTeX zurück.
-// Diese Funktion definiert alle standardmäßig unterstützten Makros wie
-// frac(...), sqrt(...), abs(...) usw.
-//
-// Rückgabe:
-// - Vektor mit Makrodefinitionen (Name, Argumentanzahl, LaTeX-Format)
-std::vector<MacroSpec> get_default_macros() {
-    return {
-        {"frac", 2, "\\frac{__0__}{__1__}"},
-        {"sqrt", 1, "\\sqrt{__0__}"},
-        {"abs", 1, "\\left|__0__\\right|"},
-        {"log", 1, "\\log{__0__}"},
-        {"pow", 2, "{__0__}^{__1__}"}
-    };
-}
-
 /**
  * Führt alle bekannten Makrovereinfachungen im Text aus.
  *
@@ -266,9 +251,11 @@ std::vector<MacroSpec> get_default_macros() {
  *   - Der vereinfachte Text mit allen Makros ersetzt durch gültige LaTeX-Syntax.
  */
 std::string simplify_all_macros(const std::string& input) {
+    
     std::string result = input;
+    std::unordered_map<std::string, MacroSpec> macros = load_macros_from_file("config/macros.json");
 
-    for (const auto& spec : get_default_macros()) {
+    for (const auto& [key, spec] : macros) {
         result = simplify_macro_spec(result, spec);
     }
 

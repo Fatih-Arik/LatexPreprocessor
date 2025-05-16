@@ -1,5 +1,7 @@
 #include "../include/file_utils.h"
 
+
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -64,4 +66,24 @@ nlohmann::json read_json_config(const std::string& filename) {
     
     return config;
 
+}
+
+// Liest den Inhalt von macros.json und gibt den Inhalt als unordered_map zurück
+// Parameter:
+// - filename: Pfad zur Datei (relativ oder absolut)
+//
+// Rückgabe:
+// - Ein unordered_map-Objekt mit dem Inhalt der Datei als Key-Value paaren
+std::unordered_map<std::string, MacroSpec> load_macros_from_file(const std::string& filename) {
+
+    std::unordered_map<std::string, MacroSpec> macro_map;
+    nlohmann::json macro_json;
+    macro_json = read_json_config(filename);
+
+    for (auto& [key, values] : macro_json.items()) {
+        size_t arg_count = values[0].get<size_t>();
+        std::string format = values[1].get<std::string>();
+        macro_map[key] = { key, arg_count, format };
+    }
+    return macro_map;
 }
