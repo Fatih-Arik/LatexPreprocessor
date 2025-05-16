@@ -40,7 +40,10 @@ Beispiel (`macros.json`):
   "frac": [2, "\\frac{__0__}{__1__}"],
   "sqrt": [1, "\\sqrt{__0__}"]
 }
----
+```
+
+--- 
+
 ## Technologien
 
 - **Sprache:** C++ (C++20 / C++23)
@@ -93,7 +96,9 @@ int main() {
 \end{lstlisting}
 ```
 
-### Konfiguration(config.json)
+---
+
+## Konfiguration(config.json)
 
 ```json
 {
@@ -103,6 +108,8 @@ int main() {
   "pdflatex_path": "C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
 }
 ```
+
+---
 
 Hinweise:
 
@@ -114,6 +121,7 @@ Hinweise:
 
 * pdflatex_path: Optional – Optional – erlaubt automatische PDF-Erzeugung
 
+---
 
 ### Anforderungen 
 
