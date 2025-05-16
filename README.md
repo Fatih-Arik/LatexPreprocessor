@@ -27,6 +27,20 @@ Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwe
 
 ---
 
+### Dynamisch konfigurierbare Makros
+
+Mathematische Makros wie `frac`, `sqrt`, `log`, `pow` usw. werden beim Programmstart dynamisch aus der Datei `config/macros.json` geladen. Dadurch können neue Makros flexibel ergänzt oder bestehende geändert werden – ganz ohne Änderungen am Quellcode.
+
+Strukturelle Elemente wie `#math(...)`, `#blockmath(...)` oder `#codeblock[...]` sind weiterhin fest in der Programmlogik definiert.
+
+Beispiel (`macros.json`):
+
+```json
+{
+  "frac": [2, "\\frac{__0__}{__1__}"],
+  "sqrt": [1, "\\sqrt{__0__}"]
+}
+---
 ## Technologien
 
 - **Sprache:** C++ (C++20 / C++23)
