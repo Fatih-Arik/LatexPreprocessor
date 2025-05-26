@@ -14,16 +14,16 @@ Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwe
 
 | Makro                | Beispiel                        | Ergebnis (LaTeX)                    |
 |---------------------|----------------------------------|--------------------------------------|
-| `frac(x, y)`        | `frac(1, 2)`                     | `\frac{1}{2}`                        |
-| `sqrt(x)`           | `sqrt(9)`                        | `\sqrt{9}`                           |
-| `abs(x)`            | `abs(-1)`                        | `\left\|-1\right\|`                  |
-| `log(x)`            | `log(n)`                         | `\log{n}`                            |
-| `pow(x, y)`         | `pow(x, 2)`                      | `{x}^{2}`                            |
+| `\frac(x, y)`        | `\frac(1, 2)`                     | `\frac{1}{2}`                        |
+| `\sqrt(x)`           | `\sqrt(9)`                        | `\sqrt{9}`                           |
+| `\abs(x)`            | `\abs(-1)`                        | `\left\|-1\right\|`                  |
+| `\log(x)`            | `\log(n)`                         | `\log{n}`                            |
+| `\pow(x, y)`         | `\pow(x, 2)`                      | `{x}^{2}`                            |
 | `#math(...)`        | `#math(frac(1,2))`               | `\(\frac{1}{2}\)`                    |
 | `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
 | `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
-| `##define`          | `##define AUTHOR Max`            | ersetzt `AUTHOR` im gesamten Text    |
-| `##include`         | `##include "mysection.tex"`      | fügt Dateiinhalte ein                 |
+| `\define`          | `\define{AUTHOR}{Max}`            | ersetzt `AUTHOR` im gesamten Text    |
+| `\##include`         | `\include{"mysection.tex"}`      | fügt Dateiinhalte ein                 |
 
 ---
 
@@ -59,15 +59,15 @@ Beispiel (`macros.json`):
 ### Eingabe
 
 ```latex
-##define AUTHOR Max
+\define{AUTHOR}{Max}
 
 \title{Mein Dokument}
 \author{AUTHOR}
 
 \section{Einleitung}
-Hallo Welt! #math(frac(1, 2))
+Hallo Welt! #math(\frac(1, 2))
 
-#blockmath(sqrt(pow(n, 2)))
+#blockmath(\sqrt(\pow(n, 2)))
 
 #codeblock[cpp]{
 #include <iostream>
@@ -98,28 +98,17 @@ int main() {
 
 ---
 
-## Konfiguration(config.json)
+## Kommandozeilenargumente
+| Option           | Beschreibung                                       | Standardwert               |
+| ---------------- | -------------------------------------------------- | -------------------------- |
+| `-o`, `--output` | Pfad zur Ausgabedatei                              | `./output/test_output.tex` |
+| `-f`, `--format` | Ausgabeformat (`latex`, `markdown`, `html`)        | `latex`                    |
+| `-m`, `--macros` | Pfad zur Makrodefinition (`.json`)                 | `./config/macros.json`     |
+| `input`          | Eingabedatei (Pflichtparameter, z. B. `input.tex`) | —                          |
+| `-h`, `--help`   | Zeigt Hilfe und Optionenbeschreibung an            | —                          |
 
-```json
-{
-  "input_file": "input.tex",
-  "output_file": "output.tex",
-  "output_folder": "output/",
-  "pdflatex_path": "C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe"
-}
-```
-
----
-
-Hinweise:
-
-* input_file: Pfad zur Eingabedatei
-
-* output_file: Zielname für den konvertierten LaTeX-Code
-
-* output_folder: Zielverzeichnis
-
-* pdflatex_path: Optional – Optional – erlaubt automatische PDF-Erzeugung
+Beispiel:
+LatexPreprocessor -o output/out.tex -f latex -m config/macros.json input/example.tex
 
 ---
 
@@ -127,4 +116,3 @@ Hinweise:
 
 * C++20-kompatibler Compiler (z. B. Visual Studio 2022)
 
-* Optional: pdflatex (für direkte PDF-Ausgabe)
