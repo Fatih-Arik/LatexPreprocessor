@@ -1,6 +1,6 @@
-#include "preprocessor.h"
-#include "file_utils.h"
-#include "macro_utils.h"
+#include "../include/preprocessor.h"
+#include "../include/file_utils.h"
+#include "../include/macro_utils.h"
 
 #include <iostream>
 #include <fstream>
@@ -12,41 +12,42 @@
  
 
 /**
- * Ersetzt alle `##include "filename"`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
+ * Ersetzt alle `\include{"filename"}`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
  *
  * Die Funktion durchsucht den Text zeilenweise nach Include-Direktiven und ersetzt sie mit dem Inhalt
  * der jeweils referenzierten Datei. Dabei werden nur gültige Zeilen berücksichtigt,
- * die dem Muster `##include "pfad/zur/datei.tex"` entsprechen.
+ * die dem Muster `\include{"pfad/zur/datei.tex"}` entsprechen.
  *
  * Parameter:
  *     content – Der vollständige LaTeX-Text, in dem Includes verarbeitet werden sollen.
  *
  * Rückgabe:
- *     Ein neuer Text, in dem alle `##include`-Anweisungen ersetzt wurden.
+ *     Ein neuer Text, in dem alle `\include`-Anweisungen ersetzt wurden.
  */
 
 std::string process_include(const std::string& content) {
 
 
-    // ##include "(.*?)"
-    // ##include -> Sucht nach dem Schlüsselwort `#include`
-    // " -> Erwartet ein doppeltes Anführungszeichen (escaped als \" in C++)
-    // (.*?) -> Greift den Dateinamen ab:
-    //   . -> Beliebiges Zeichen (auch Leerzeichen)
-    //   * -> Beliebig viele Zeichen (einschließlich keiner)
-    //   ? -> Minimal greedy: Nimmt nur so viele Zeichen, bis das nächste `"` erscheint
-    // " -> Erwartet das schließende Anführungszeichen
-    std::regex include_regex("##include \"(.*?)\"");
+    // \include\s*{\s*"(.*?)"\s*}
+    // \include -> Sucht nach dem Schlüsselwort `\include`
+    //    (.*?) -> Greift den Dateinamen ab:
+    //      \s* -> Beliebig viele Leerzeichen sind erlaubt
+    //        . -> Beliebiges Zeichen (auch Leerzeichen)
+    //        * -> Beliebig viele Zeichen (einschließlich keiner)
+    //        ? -> Minimal greedy: Nimmt nur so viele Zeichen, bis das nächste `"` erscheint
+    std::regex include_regex(R"(\\include\s*\{\s*\"(.*?)\"\s*\})");
+
     std::stringstream result;
     std::istringstream stream(content);
     std::string line;
     std::string include_file;          
     std::string included_content;
 
+  
     while (std::getline(stream, line)) {
 
         std::smatch match;
-        if (std::regex_search(line, match, include_regex)) {    // regex_search prüft ob ein Teil des Strings übereinstimmt, damit wir #include innerhalb eines Textes verwenden können
+        if (std::regex_search(line, match, include_regex)) {    // regex_search prüft ob ein Teil des Strings übereinstimmt, damit wir \include innerhalb eines Textes verwenden können
             include_file = match[1].str();          // Extrahierter Dateiname
             included_content = read_file(include_file);
             result << included_content << "\n";
@@ -60,13 +61,13 @@ std::string process_include(const std::string& content) {
 
 
 /**
- * Extrahiert alle `##define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
+ * Extrahiert alle `\define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
  *
- * Ein Makro muss im Format `#define NAME WERT` vorliegen.
+ * Ein Makro muss im Format `\define{ NAME }{ WERT }` vorliegen.
  * Zeilen, die diesem Muster entsprechen, werden analysiert und gesammelt.
  *
  * Beispiel:
- *     ##define AUTHOR Max Mustermann
+ *     \define{AUTHOR}{Max Mustermann}
  *     -> Makro["AUTHOR"] = "Max Mustermann"
  *
  * Parameter:
@@ -76,31 +77,28 @@ std::string process_include(const std::string& content) {
  *     Eine HashMap (unordered_map), die alle gefundenen Makros enthält.
  */
 std::unordered_map<std::string, std::string> extract_defines(const std::string& content) {
-    // Regex zur Erkennung von `##define NAME Wert`
-    // ##define\s+(\w+)\s+(.+)
-    // ##define -> Schlüsselwort `##define`
-    // \s+ -> Mindestens ein Leerzeichen
+    // Regex zur Erkennung von `\define{NAME}{Wert}`
+    // \define{(\w+)}{(.+)}
+    
     // (\w+) -> Der Makroname (nur Buchstaben/Zahlen/Unterstriche)
-    // \s+ -> Mindestens ein Leerzeichen zwischen Name und Wert
     // (.+) -> Der Wert des Makros (alles nach dem Namen)
 
-    std::regex define_regex("##define\\s+(\\w+)\\s+(.*)");
+    std::regex define_regex(R"(\\define\{(\w+)\}\{(.*)\})");
     std::unordered_map<std::string, std::string> macros;
     std::istringstream stream(content); 
 
+    std::string key;               
+    std::string value;             
     std::string line; 
-
 
     // Lese den Text Zeile für Zeile
     while (std::getline(stream, line)) {
         std::smatch match; // Speichert das Ergebnis der Regex-Suche
-        std::string key = match[1].str();               // Extrahiert den Makro-Namen (z. B. "AUTHOR")
-        std::string value = match[2].str();             // Extrahiert den Makro-Wert (z. B. "Max Mustermann")
 
         // Prüft, ob die aktuelle Zeile der `#define`-Syntax entspricht
         if (std::regex_match(line, match, define_regex)) {  // Der gesamte String muss bei regex_match übereinstimmen
-            key = match[1].str();               // Extrahiert den Makro-Namen (z. B. "AUTHOR")
-            value = match[2].str();             // Extrahiert den Makro-Wert (z. B. "Max Mustermann")
+            key = match[1].str();                           // Extrahiert den Makro-Namen (z. B. "AUTHOR")
+            value = match[2].str();                         // Extrahiert den Makro-Wert (z. B. "Max Mustermann")
 
             // Speichert das Makro in der HashMap (Key-Value-Paar)
             macros[key] = value;
@@ -140,25 +138,26 @@ std::string replace_text_macros(const std::string& text, const std::unordered_ma
     return result;
 }
 
+
 /**
- * Entfernt alle `##define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
+ * Entfernt alle `\define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
  *
- * Dabei wird jede Zeile, die mit `##define` beginnt, durch ein Platzhalter-Marker ersetzt
+ * Dabei wird jede Zeile, die mit `\define` beginnt, durch ein Platzhalter-Marker ersetzt
  * und anschließend vollständig entfernt. So bleiben keine unnötigen Leerzeilen im Text zurück.
  *
  * Parameter:
  *     text – Referenz auf den LaTeX-Text, aus dem Makros entfernt werden sollen.
  *
  * Rückgabe:
- *     Der bereinigte Text ohne `##define`-Makros und leere Makro-Zeilen.
+ *     Der bereinigte Text ohne `\define`-Makros und leere Makro-Zeilen.
  */
 std::string remove_defines(std::string& text) {
-    // 1. Ersetze alle #define-Zeilen durch einen Platzhalter
+    // 1. Ersetze alle \define-Zeilen durch einen Platzhalter
     // ^          Zeilenanfang
-    // ##define    Das wörtliche Schlüsselwort
+    // \define    Das wörtliche Schlüsselwort
     // .*         Beliebige Zeichen bis zum Ende der Zeile
     // $          Zeilenende
-    std::regex macro_regex(R"(^##define.*$)");
+    std::regex macro_regex(R"(^\\define.*$)");
     text = std::regex_replace(text, macro_regex, "+HIDDEN+");
 
     // 2. Entferne alle Zeilen, die nur aus dem Marker + evtl. Leerzeichen + \n bestehen

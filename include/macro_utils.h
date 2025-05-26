@@ -37,4 +37,4 @@ std::string simplify_block_math(const std::string& text);
 
 
 // Führt alle bekannten Makrovereinfachungen im Text aus.
-std::string simplify_all_macros(const std::string& input);
+std::string simplify_all_macros(const std::string& input, const std::string& macros_path);

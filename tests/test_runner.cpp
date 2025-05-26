@@ -111,9 +111,10 @@ void test_codeblocks() {
 void test_simplify_inline_math() {
     std::cout << "Teste simplify_inline_math...\n";
 
+    std::string macro_path = "./config/macros.json";
     std::string input = "#math(frac(1, 2))";
     std::string expected = "\\(\\frac{1}{ 2}\\)";
-    std::string output = simplify_all_macros(input);
+    std::string output = simplify_all_macros(input, macro_path);
 
     if (output == expected)
         std::cout << "Inline-Mathe OK\n";
@@ -125,7 +126,9 @@ void test_simplify_block_math() {
     std::cout << "Teste simplify_block_math...\n";
     std::string input = "#blockmath(frac(1,abs(2)))";
     std::string expected = "\\[\\frac{1}{\\left|2\\right|}\\]";
-    std::string output = simplify_all_macros(input);
+    std::string macro_path = "./config/macros.json";
+
+    std::string output = simplify_all_macros(input, macro_path);
     
 
     if (output == expected)

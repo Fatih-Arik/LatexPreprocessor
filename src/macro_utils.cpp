@@ -250,10 +250,10 @@ std::string simplify_block_math(const std::string& text) {
  * Rückgabe:
  *   - Der vereinfachte Text mit allen Makros ersetzt durch gültige LaTeX-Syntax.
  */
-std::string simplify_all_macros(const std::string& input) {
+std::string simplify_all_macros(const std::string& input, const std::string& macros_path){
     
     std::string result = input;
-    std::unordered_map<std::string, MacroSpec> macros = load_macros_from_file("config/macros.json");
+    std::unordered_map<std::string, MacroSpec> macros = load_macros_from_file(macros_path);
 
     for (const auto& [key, spec] : macros) {
         result = simplify_macro_spec(result, spec);

@@ -1,11 +1,11 @@
-#define NAME Max Mustermann
-#define ZAHL 42
-#define DEBUG
+\define{NAME}{Max Mustermann}
+\define{ZAHL}{42}
+
 \documentclass{article}
 \title{Mein Dokument}
 \author{NAME}
 
-#include "./test/settings.tex"
+\include{"./settings.tex"}
 
 \begin{document}
 \maketitle
@@ -13,6 +13,6 @@
 Hallo Welt! \\
 Mein Name ist NAME
 
-#include "./test/footer.tex"
+\include{"./footer.tex"}
 
 %\end{document}

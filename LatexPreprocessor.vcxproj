@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\cli_utils.cpp" />
     <ClCompile Include="src\converter.cpp" />
     <ClCompile Include="src\file_utils.cpp" />
     <ClCompile Include="src\macro_utils.cpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="tests\test_runner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\cli_utils.h" />
     <ClInclude Include="include\converter.h" />
     <ClInclude Include="include\file_utils.h" />
     <ClInclude Include="include\json.hpp" />
