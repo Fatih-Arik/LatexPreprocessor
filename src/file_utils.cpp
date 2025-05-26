@@ -81,7 +81,9 @@ std::unordered_map<std::string, MacroSpec> load_macros_from_file(const std::stri
     macro_json = read_json_config(filename);
 
     for (auto& [key, values] : macro_json.items()) {
-        size_t arg_count = values[0].get<size_t>();
+        // Lese aus dem JSON-Array: erstes Element ist die Argumentanzahl (als size_t)
+        // zweites Element ist das Ausgabeformat (als std::string)
+        size_t arg_count = values[0].get<size_t>(); 
         std::string format = values[1].get<std::string>();
         macro_map[key] = { key, arg_count, format };
     }
