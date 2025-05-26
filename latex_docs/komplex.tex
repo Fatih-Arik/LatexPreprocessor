@@ -2,7 +2,7 @@
 \usepackage{listings}
 
 \define{NAME}{Test}
-\define{NENNER}{frac(n(n+1), 42)}
+\define{NENNER}{\frac(n(n+1), 42)}
 
 \title{Mein Dokument}
 \author{NAME}
@@ -17,14 +17,14 @@ Und hier ist mehr Text
 
 \section{Mathematik}
 Inline-Mathe: $E = mc^2$  \\
-Mathe: Hier ist ein Text über Mathe #math(frac(NENNER, 2)) und hier geht es weiter.\\  
+Mathe: Hier ist ein Text über Mathe #math(\frac(NENNER, 2)) und hier geht es weiter.\\  
 
-#math(frac(1, sqrt(2))) \\
+#math(\frac(1, \sqrt(2))) \\
 
-#math(pow(1, sqrt(2))) \\
+#math(\pow(1, \sqrt(2))) \\
 
-Hallo #math(frac(1, 2)) Welt.  
-#blockmath(sqrt(frac(4, abs(3))))
+Hallo #math(\frac(1, 2)) Welt.  
+#blockmath(\sqrt(\frac(4, \abs(3))))
 
 \section{Include}
 \include{"./latex_docs/Text.tex"}
