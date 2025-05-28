@@ -12,26 +12,30 @@ Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwe
 
 ### Unterstützte Makros
 
-| Makro                | Beispiel                        | Ergebnis (LaTeX)                    |
-|---------------------|----------------------------------|--------------------------------------|
-| `\frac(x, y)`        | `\frac(1, 2)`                     | `\frac{1}{2}`                        |
-| `\sqrt(x)`           | `\sqrt(9)`                        | `\sqrt{9}`                           |
-| `\abs(x)`            | `\abs(-1)`                        | `\left\|-1\right\|`                  |
-| `\log(x)`            | `\log(n)`                         | `\log{n}`                            |
-| `\pow(x, y)`         | `\pow(x, 2)`                      | `{x}^{2}`                            |
-| `#math(...)`        | `#math(frac(1,2))`               | `\(\frac{1}{2}\)`                    |
-| `#blockmath(...)`   | `#blockmath(frac(1,2))`          | `\[\frac{1}{2}\]`                    |
-| `#codeblock[cpp]{}` | `#codeblock[cpp]{int main() {}}`| `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
-| `\define{...}`          | `\define{AUTHOR}{Max}`            | ersetzt `AUTHOR` im gesamten Text    |
-| `\include{...}`         | `\include{"mysection.tex"}`      | fügt Dateiinhalte ein                 |
+| Makro                | Beispiel                        | Ergebnis (LaTeX)                                       |
+|---------------------|----------------------------------|--------------------------------------------------------|
+| `\frac(x, y)`        | `\frac(1, 2)`                     | `\frac{1}{2}`                                        |
+| `\sqrt(x)`           | `\sqrt(9)`                        | `\sqrt{9}`                                           |
+| `\abs(x)`            | `\abs(-1)`                        | `\left\|-1\right\|`                                  |
+| `\log(x)`            | `\log(n)`                         | `\log{n}`                                            |
+| `\pow(x, y)`         | `\pow(x, 2)`                      | `{x}^{2}`                                            |
+| `#math(...)`         | `#math(frac(1,2))`                | `\(\frac{1}{2}\)`                                    |
+| `#blockmath(...)`    | `#blockmath(frac(1,2))`           | `\[\frac{1}{2}\]`                                    |
+| `#codeblock[cpp]{}`  | `#codeblock[cpp]{int main() {}}`  | `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
+| `\define{...}{...}`  | `\define{AUTHOR}{Max}`            | definiert ein Flag ohne Wert                         |
+| `\define{...}`       | `\define{DEBUG}`                  | ersetzt `AUTHOR` im gesamten Text                    |
+| `\ifdef{X}...\endif` | `\ifdef{DEBUG} Text \endif`       | wird nur ersetzt, wenn `DEBUG` definiert ist         |
+| `\include{...}`      | `\include{"mysection.tex"}`       | Inhalt der Datei wird eingefügt                      |
 
 ---
 
 ### Dynamisch konfigurierbare Makros
 
-Mathematische Makros wie `\frac`, `\sqrt`, `\log`, `\pow` usw. werden beim Programmstart dynamisch aus der Datei `config/macros.json` geladen. Dadurch können neue Makros flexibel ergänzt oder bestehende geändert werden – ganz ohne Änderungen am Quellcode.
+Makros wie \frac, \sqrt, \log, \pow etc. werden zur Laufzeit aus einer JSON-Datei geladen:
 
-Strukturelle Elemente wie `#math(...)`, `#blockmath(...)` oder `#codeblock[...]` sind weiterhin fest in der Programmlogik definiert. Dabei wird der Name des Makros, die Anzahl der Argumente und das gewünschte Ausgabeformat (für LaTeX) angegeben. Im Formatstring müssen Platzhalter der Form __0__, __1__, ..., __n__ verwendet werden, um die jeweiligen Argumente einzufügen – beginnend bei __0__ für das erste Argument.
+Du kannst hier beliebige neue Makros definieren, ohne den Code zu ändern. Platzhalter wie __0__, __1__, etc. stehen für die Argumente.
+
+---
 
 Beispiel (`macros.json`):
 
@@ -42,16 +46,6 @@ Beispiel (`macros.json`):
 }
 ```
 
---- 
-
-## Technologien
-
-- **Sprache:** C++ (C++20 / C++23)
-- **Compiler:** MSVC (via Visual Studio)
-- **Bibliotheken:**
-  - [`nlohmann/json`](https://github.com/nlohmann/json) (für Konfigurationsdateien)
-  - Standardbibliothek: `<regex>`, `<fstream>`, `<filesystem>`, etc.
-
 ---
 
 ## Beispiel
@@ -60,13 +54,19 @@ Beispiel (`macros.json`):
 
 ```latex
 \define{AUTHOR}{Max}
+\define{DEBUG}
 
-\title{Mein Dokument}
+\title{Beispieldokument}
 \author{AUTHOR}
 
-\section{Einleitung}
-Hallo Welt! #math(\frac(1, 2))
+\ifdef{DEBUG}
+Dies ist nur sichtbar im Debug-Modus.
+\endif
 
+\section{Mathematik}
+Inline: #math(\frac(1, 2))
+
+Block:
 #blockmath(\sqrt(\pow(n, 2)))
 
 #codeblock[cpp]{
@@ -76,16 +76,22 @@ int main() {
 }
 }
 
+\include{"footer.tex"}
+
+
 ```
 
 ### Ausgabe 
 ```latex
-\title{Mein Dokument}
+\title{Beispieldokument}
 \author{Max}
 
-\section{Einleitung}
-Hallo Welt! \(\frac{1}{2}\)
+Dies ist nur sichtbar im Debug-Modus.
 
+\section{Mathematik}
+Inline: \(\frac{1}{2}\)
+
+Block:
 \[\sqrt{{n}^{2}}\]
 
 \begin{lstlisting}[language=cpp]
@@ -94,6 +100,8 @@ int main() {
     std::cout << "Hallo Welt!";
 }
 \end{lstlisting}
+
+% Inhalt von footer.tex wird hier eingefügt
 ```
 
 ---
@@ -109,6 +117,18 @@ int main() {
 
 Beispiel:
 LatexPreprocessor -o output/out.tex -f latex -m config/macros.json input/example.tex
+
+--- 
+
+## Technologien
+
+- **Sprache:** C++ (C++20 / C++23)
+- **Compiler:** MSVC (via Visual Studio)
+- **Bibliotheken:**
+  - [`nlohmann/json`](https://github.com/nlohmann/json) 
+  - [`jarro2783/cxxopts`](https://github.com/jarro2783/cxxopts) 
+  - Standardbibliothek: `<regex>`, `<fstream>`, `<filesystem>`, etc.
+
 
 ---
 
