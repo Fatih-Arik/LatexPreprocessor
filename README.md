@@ -33,7 +33,7 @@ Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwe
 
 Makros wie \frac, \sqrt, \log, \pow etc. werden zur Laufzeit aus einer JSON-Datei geladen:
 
-Du kannst hier beliebige neue Makros definieren, ohne den Code zu ändern. Platzhalter wie __0__, __1__, etc. stehen für die Argumente.
+Hier können beliebige einfache Makros definieren werden, ohne den Code zu ändern in der Form \name(0, 1, ...). Platzhalter wie __0__, __1__, etc. stehen für die Argumente.
 
 ---
 
