@@ -1,6 +1,6 @@
 # LaTeX Preprocessor (C++)
 
-Dieses Projekt implementiert einen einfachen Präprozessor zur Umwandlung einer vereinfachten, LaTeX-ähnlichen Syntax in echtes LaTeX. Ziel ist es, mathematische Ausdrücke, Quellcode-Snippets und Inhalte effizienter zu schreiben.
+Das Ziel dieses Projekts war es, einen erweiterbaren Präprozessor für vereinfachtes LaTeX zu erstellen, um flexible Textformate effizienter zu schreiben und konvertieren zu können.
 
 ## Motivation
 
