@@ -12,3 +12,5 @@ void test_codeblocks();
 void test_simplify_inline_math();
 
 void test_simplify_block_math();
+
+void test_ifdef();

@@ -55,7 +55,7 @@ std::string process_include(const std::string& content) {
         else {
             result << line << "\n";
         }
-    }
+    }    
     return result.str();
 }
 
@@ -63,12 +63,13 @@ std::string process_include(const std::string& content) {
 /**
  * Extrahiert alle `\define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
  *
- * Ein Makro muss im Format `\define{ NAME }{ WERT }` vorliegen.
+ * Ein Makro kann im Format `\define{KEY}` oder `\define{KEY}{WERT}` vorliegen.
  * Zeilen, die diesem Muster entsprechen, werden analysiert und gesammelt.
  *
+ * 
  * Beispiel:
- *     \define{AUTHOR}{Max Mustermann}
- *     -> Makro["AUTHOR"] = "Max Mustermann"
+ *     \define{AUTHOR}{Max Mustermann} → Makro["AUTHOR"] = "Max Mustermann"
+ *     \define{DEBUG}                  → Makro["DEBUG"]  = ""
  *
  * Parameter:
  *     content – Der vollständige Eingabetext, in dem nach Makros gesucht wird.
@@ -77,13 +78,13 @@ std::string process_include(const std::string& content) {
  *     Eine HashMap (unordered_map), die alle gefundenen Makros enthält.
  */
 std::unordered_map<std::string, std::string> extract_defines(const std::string& content) {
-    // Regex zur Erkennung von `\define{NAME}{Wert}`
-    // \define{(\w+)}{(.+)}
-    
-    // (\w+) -> Der Makroname (nur Buchstaben/Zahlen/Unterstriche)
-    // (.+) -> Der Wert des Makros (alles nach dem Namen)
-
-    std::regex define_regex(R"(\\define\{(\w+)\}\{(.*)\})");
+    // Regex zum Erfassen von Makros im Format:
+    // \define{NAME}             → ohne Wert
+    // \define{NAME}{WERT}       → mit Wert
+    // (\w+)     = der Makroname (Buchstaben/Zahlen/_)
+    // (?:...)   = non-capturing group, damit {...} optional ist
+    // (.*)      = der Makro-Wert (alles innerhalb der zweiten Klammer)
+    std::regex define_regex(R"(\\define\{(\w+)\}(?:\{(.*)\})?)");
     std::unordered_map<std::string, std::string> macros;
     std::istringstream stream(content); 
 
@@ -91,16 +92,21 @@ std::unordered_map<std::string, std::string> extract_defines(const std::string& 
     std::string value;             
     std::string line; 
 
-    // Lese den Text Zeile für Zeile
+    // Zeile für Zeile durchgehen
     while (std::getline(stream, line)) {
-        std::smatch match; // Speichert das Ergebnis der Regex-Suche
+        std::smatch match; 
 
-        // Prüft, ob die aktuelle Zeile der `#define`-Syntax entspricht
-        if (std::regex_match(line, match, define_regex)) {  // Der gesamte String muss bei regex_match übereinstimmen
-            key = match[1].str();                           // Extrahiert den Makro-Namen (z. B. "AUTHOR")
-            value = match[2].str();                         // Extrahiert den Makro-Wert (z. B. "Max Mustermann")
+        // Prüft, ob die Zeile zu unserem \define-Muster passt
+        if (std::regex_match(line, match, define_regex)) {  
+            key = match[1].str();                           // Der Makroname (z. B. "DEBUG", "AUTHOR")                  
 
-            // Speichert das Makro in der HashMap (Key-Value-Paar)
+            // Prüfe, ob ein Wert vorhanden war (zweites Gruppen-Match)
+            if (match[2].matched) {
+                value = match[2].str();        // Wert extrahieren
+            }
+            else {
+                value = "";                    // Kein Wert → leerer String
+            }
             macros[key] = value;
         }
     }
@@ -170,6 +176,67 @@ std::string remove_defines(std::string& text) {
 
     return text;
 }
+
+
+/**
+ * Verarbeitet `\ifdef{...}`-Blöcke im LaTeX-ähnlichen Text abhängig von zuvor definierten Makros.
+ *
+ * Der Inhalt zwischen `\ifdef{KEY}` und `\endif` wird nur übernommen,
+ * wenn `KEY` zuvor mit `\define{KEY}` definiert wurde.
+ *
+ * Aktuell wird keine Verschachtelung unterstützt und es gibt keine `\else`-Verzweigung.
+ *
+ * Parameter:
+ *     text     – Der gesamte LaTeX-Eingabetext, zeilenweise verarbeitet.
+ *     defines  – Map mit definierten Makros (aus \define), z. B. {"DEBUG": "", "AUTHOR": "Max"}.
+ *
+ * Rückgabe:
+ *     Der bereinigte und gefilterte Text, bei dem nur gültige \ifdef-Blöcke erhalten bleiben.
+ */
+std::string process_conditionals(const std::string& text, const std::unordered_map<std::string, std::string>& defines) {
+    std::istringstream stream(text);
+    std::ostringstream output;
+    std::string line;
+
+    bool inside_block = false;           // Merker, ob wir uns innerhalb eines \ifdef-Blocks befinden
+    bool skip_block = false;             // Merker, ob der aktuelle Block verworfen werden soll
+    std::string block_buffer;            // Zwischenspeicher für akzeptierte Zeilen eines Blocks
+    std::string current_macro;           // Name des Makros in \ifdef{...}
+
+    while (std::getline(stream, line)) {
+        // Start eines \ifdef-Blocks
+        
+        if (!inside_block && line.find(R"(\ifdef{)") != std::string::npos) {
+            size_t start = line.find('{') + 1;
+            size_t end = line.find('}', start);
+            current_macro = line.substr(start, end - start);
+            inside_block = true;
+            skip_block = defines.find(current_macro) == defines.end();
+            block_buffer.clear();
+        }
+        // Ende eines \ifdef-Blocks
+        else if (inside_block && line.find(R"(\endif)") != std::string::npos) {
+            if (!skip_block) {
+                output << block_buffer;  // Nur behalten, wenn Makro definiert war
+            }
+            inside_block = false;
+        }
+        // Innerhalb eines aktiven Blocks – Zeilen sammeln oder ignorieren
+        else if (inside_block) {
+            if (!skip_block) {
+                block_buffer += line + "\n";
+            }
+        }
+        // Zeile außerhalb jeglicher Blocks -> immer behalten
+        else {
+            output << line << "\n";
+        }
+    }
+
+    return output.str();
+}
+
+
 
 
 

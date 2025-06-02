@@ -14,7 +14,7 @@
 std::string process_include(const std::string& content);
 
 
- // Extrahiert alle `\define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
+// Extrahiert alle `\define`-Makros aus dem Quelltext und speichert sie als Schlüssel - Wert - Paare.
 std::unordered_map<std::string, std::string> extract_defines(const std::string& content);
 
 
@@ -24,6 +24,10 @@ std::string replace_text_macros(const std::string& text, const std::unordered_ma
 
 // Entfernt alle `\define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
 std::string remove_defines(std::string& text);
+
+
+//Verarbeitet `\ifdef{ ... }`-Blöcke im LaTeX - ähnlichen Text abhängig von zuvor definierten Makros.
+std::string process_conditionals(const std::string& text, const std::unordered_map<std::string, std::string>& defines);
 
 
 // Extrahiert die Programmiersprache aus einem Codeblock-Makro

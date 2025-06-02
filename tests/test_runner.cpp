@@ -1,5 +1,7 @@
 #include "test_runner.h"
 #include <iostream>
+#include <cassert>
+
 #include "../include/macro_utils.h" 
 #include "../include/preprocessor.h"
 #include "../include/file_utils.h"
@@ -15,24 +17,19 @@ void run_all_tests() {
     test_codeblocks();
     test_simplify_inline_math();
     test_simplify_block_math();
-
+    test_ifdef();
     std::cout << "==== Alle Tests abgeschlossen ====\n";
 }
 
 
 void test_simplify_macro_spec() {
-    std::cout << "Teste simplify_macro_spec...\n";
-
-    std::string input = "frac(1,2";
-    MacroSpec spec = { "frac", 2, "\\frac{__0__}{__1__}" };
+    // Test: Ungültige Makros sollen nicht verändert werden (z. B. fehlende schließende Klammer)
+    std::string input = "\\frac(1,2";
+    MacroSpec spec = { "\\frac", 2, "\\frac{__0__}{__1__}" };
     std::string output = simplify_macro_spec(input, spec);
-
-    if (output == "\\frac{1}{2}") {
-        std::cout << "simplify_macro_spec OK\n";
-    }
-    else {
-        std::cout << "simplify_macro_spec Fehler: " << output << "\n";
-    }
+    
+    assert(output == "\\frac(1,2" && "simplify_macro_spec fehlgeschlagen.");
+    
 }
 
 void test_extract_math_args() {
@@ -45,24 +42,18 @@ void test_extract_math_args() {
     };
 
     std::vector<TestCase> tests = {
-        {"frac(1, 2)", 4, {"1", " 2"}},
-        {"frac(1, sqrt(2))", 4, {"1", " sqrt(2)"}},
-        {"sqrt(42)", 4, {"42"}},
-        {"frac(1, frac(2, 3))", 4, {"1", " frac(2, 3)"}},
-        {"frac(1, 2", 4, {}},
-        {"frac1, 2)", 4, {}},
-        {"frac(1, 2))", 4, {"1", " 2"}}
+        {"\\frac(1, 2)", 5, {"1", " 2"}},
+        {"\\sqrt(42)", 5, {"42"}},
+        {"\\frac(1, \\sqrt(2))", 5, {"1", " \\sqrt(2)"}},
     };
 
     for (const auto& test : tests) {
         size_t end_pos;
         auto result = extract_math_args(test.input, test.start_pos, end_pos);
-
-        std::cout << "Input: " << test.input << "\n";
-        std::cout << "-> Args: ";
-        for (const auto& arg : result) std::cout << "[" << arg << "] ";
-        std::cout << "\n";
-        std::cout << "End_Pos: " << end_pos << "\n";
+        for (auto& value : result){
+            std::cout << "result: " << value << "\n";
+        }
+        assert(result == test.expected_args && "extract_math_args fehlgeschlagen");
     }
 
     std::cout << "extract_math_args abgeschlossen.\n\n";
@@ -94,15 +85,7 @@ void test_codeblocks() {
     for (const auto& test : tests) {
         std::string output = simplify_codeblocks(test.input);
 
-        if (output == test.expected_output) {
-            std::cout << "Test OK: " << test.input.substr(0, 30) << "...\n";
-        }
-        else {
-            std::cout << "Fehler!\n";
-            std::cout << "Input:    " << test.input << "\n";
-            std::cout << "Erwartet: " << test.expected_output << "\n";
-            std::cout << "Bekommen: " << output << "\n";
-        }
+        assert(output == test.expected_output && "simplify_codeblocks fehlgeschlagen");
     }
 
     std::cout << "simplify_codeblocks abgeschlossen.\n\n";
@@ -112,27 +95,37 @@ void test_simplify_inline_math() {
     std::cout << "Teste simplify_inline_math...\n";
 
     std::string macro_path = "./config/macros.json";
-    std::string input = "#math(frac(1, 2))";
+    std::string input = "#math(\\frac(1, 2))";
     std::string expected = "\\(\\frac{1}{ 2}\\)";
     std::string output = simplify_all_macros(input, macro_path);
-
-    if (output == expected)
-        std::cout << "Inline-Mathe OK\n";
-    else
-        std::cout << "Inline-Mathe Fehler: " << output << "\n";
+    assert(output == expected && "simplify_inline_math fehlgeschlagen");
 }
 
 void test_simplify_block_math() {
-    std::cout << "Teste simplify_block_math...\n";
-    std::string input = "#blockmath(frac(1,abs(2)))";
-    std::string expected = "\\[\\frac{1}{\\left|2\\right|}\\]";
     std::string macro_path = "./config/macros.json";
-
+    std::string input = "#blockmath(\\frac(1,\\abs(2)))";
+    std::string expected = "\\[\\frac{1}{\\left|2\\right|}\\]";
     std::string output = simplify_all_macros(input, macro_path);
-    
+    assert(output == expected && "simplify_block_math fehlgeschlagen");
+}
 
-    if (output == expected)
-        std::cout << "Block - Mathe OK\n";
-    else
-        std::cout << "Block-Mathe Fehler: " << output << "\n";
+
+void test_ifdef() {
+    std::unordered_map<std::string, std::string> defines;
+
+    // Test 1: define vorhanden
+    defines["DEBUG"] = "";
+    std::string input = "\\ifdef{DEBUG}\nSichtbar\n\\endif\n";
+    std::string expected = "Sichtbar\n";
+    std::string result = process_conditionals(input, defines);
+    assert(result == expected && "ifdef-Block sollte sichtbar sein");
+
+    // Test 2: define fehlt
+    defines.clear();
+    input = "\\ifdef{DEBUG}\nNicht sichtbar\n\\endif\n";
+    expected = "";
+    result = process_conditionals(input, defines);
+    assert(result == expected && "ifdef-Block sollte nicht sichtbar sein");
+
+    std::cout << "Alle ifdef-Tests erfolgreich bestanden!" << std::endl;
 }

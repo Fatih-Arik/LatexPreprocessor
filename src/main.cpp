@@ -67,8 +67,13 @@ int run_preprocessor(int argc, char* argv[]) {
 
     // Extrahierung der Einfachen-Makros
     std::unordered_map<std::string, std::string> macros = extract_defines(content);
+
+    // process_conditionals
+    content = process_conditionals(content, macros);
+
     content = replace_text_macros(content, macros);
     log_step("Text replaced", content);
+    
 
     // Enterfernen der Defines
     content = remove_defines(content);

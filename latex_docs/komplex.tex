@@ -2,6 +2,8 @@
 \usepackage{listings}
 
 \define{NAME}{Test}
+\define{NAME}
+\define{DEBUG}
 \define{NENNER}{\frac(n(n+1), 42)}
 
 \title{Mein Dokument}
@@ -34,5 +36,11 @@ Hallo #math(\frac(1, 2)) Welt.
 #codeblock[c++]{
 #define test 42
 }
+
+
+\section{ifdef}
+\ifdef{DEBUG}
+hier ist ein Bsp für Konditionale Makros!!!
+\endif
 
 \end{document}
