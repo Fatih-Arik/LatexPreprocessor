@@ -12,20 +12,21 @@ Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwe
 
 ### Unterstützte Makros
 
-| Makro                | Beispiel                        | Ergebnis (LaTeX)                                       |
-|---------------------|----------------------------------|--------------------------------------------------------|
-| `\frac(x, y)`        | `\frac(1, 2)`                     | `\frac{1}{2}`                                        |
-| `\sqrt(x)`           | `\sqrt(9)`                        | `\sqrt{9}`                                           |
-| `\abs(x)`            | `\abs(-1)`                        | `\left\|-1\right\|`                                  |
-| `\log(x)`            | `\log(n)`                         | `\log{n}`                                            |
-| `\pow(x, y)`         | `\pow(x, 2)`                      | `{x}^{2}`                                            |
-| `#math(...)`         | `#math(frac(1,2))`                | `\(\frac{1}{2}\)`                                    |
-| `#blockmath(...)`    | `#blockmath(frac(1,2))`           | `\[\frac{1}{2}\]`                                    |
-| `#codeblock[cpp]{}`  | `#codeblock[cpp]{int main() {}}`  | `\begin{lstlisting}[language=cpp]...\end{lstlisting}`|
-| `\define{...}{...}`  | `\define{AUTHOR}{Max}`            | definiert ein Flag ohne Wert                         |
-| `\define{...}`       | `\define{DEBUG}`                  | ersetzt `AUTHOR` im gesamten Text                    |
-| `\ifdef{X}...\endif` | `\ifdef{DEBUG} Text \endif`       | wird nur ersetzt, wenn `DEBUG` definiert ist         |
-| `\include{...}`      | `\include{"mysection.tex"}`       | Inhalt der Datei wird eingefügt                      |
+| Makro                | Beispiel                        | Ergebnis (LaTeX)                                                                                        |
+|---------------------|----------------------------------|---------------------------------------------------------------------------------------------------------|
+| `\frac(x, y)`        | `\frac(1, 2)`                                              | `\frac{1}{2}`                                                                |
+| `\sqrt(x)`           | `\sqrt(9)`                                                 | `\sqrt{9}`                                                                   |
+| `\abs(x)`            | `\abs(-1)`                                                 | `\left\|-1\right\|`                                                          | 
+| `\log(x)`            | `\log(n)`                                                  | `\log{n}`                                                                    |
+| `\pow(x, y)`         | `\pow(x, 2)`                                               | `{x}^{2}`                                                                    |
+| `#math(...)`         | `#math(frac(1,2))`                                         | `\(\frac{1}{2}\)`                                                            |
+| `#blockmath(...)`    | `#blockmath(frac(1,2))`                                    | `\[\frac{1}{2}\]`                                                            |
+| `#codeblock[cpp]{}`  | `#codeblock[cpp]{int main() {}}`                           | `\begin{lstlisting}[language=cpp]...\end{lstlisting}`                        |
+| `\define{...}{...}`  | `\define{AUTHOR}{Max}`                                     | definiert ein Flag ohne Wert                                                 |
+| `\define{...}`       | `\define{DEBUG}`                                           | ersetzt `AUTHOR` im gesamten Text                                            |
+| `\ifdef{X}...\endif` | `\ifdef{DEBUG} Text \endif`                                | wird nur ersetzt, wenn `DEBUG` definiert ist                                 |
+| `\ifdef{X}...\else...\endif` | `\ifdef{DEBUG} Text \else Verzweigung \endif`      | Verzweigung wird nur ersetzt, wenn `DEBUG` nicht definiert ist definiert ist |
+| `\include{...}`      | `\include{"mysection.tex"}`                                | Inhalt der Datei wird eingefügt                                              |
 
 ---
 
@@ -61,6 +62,8 @@ Beispiel (`macros.json`):
 
 \ifdef{DEBUG}
 Dies ist nur sichtbar im Debug-Modus.
+\else
+Das ist eine Verzweigung
 \endif
 
 \section{Mathematik}
