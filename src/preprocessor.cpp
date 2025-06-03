@@ -179,57 +179,55 @@ std::string remove_defines(std::string& text) {
 
 
 /**
- * Verarbeitet `\ifdef{...}`-Blöcke im LaTeX-ähnlichen Text abhängig von zuvor definierten Makros.
- *
- * Der Inhalt zwischen `\ifdef{KEY}` und `\endif` wird nur übernommen,
- * wenn `KEY` zuvor mit `\define{KEY}` definiert wurde.
- *
- * Aktuell wird keine Verschachtelung unterstützt und es gibt keine `\else`-Verzweigung.
+ * Verarbeitet \ifdef-Blöcke mit optionalem \else.
+ * Aktuell keine Verschachtelung.
  *
  * Parameter:
- *     text     – Der gesamte LaTeX-Eingabetext, zeilenweise verarbeitet.
- *     defines  – Map mit definierten Makros (aus \define), z. B. {"DEBUG": "", "AUTHOR": "Max"}.
+ *   text     – Eingabetext (LaTeX-ähnlich)
+ *   defines  – Vorher definierte Makros (\define)
  *
  * Rückgabe:
- *     Der bereinigte und gefilterte Text, bei dem nur gültige \ifdef-Blöcke erhalten bleiben.
+ *   Gefilterter Text (nur gültige Teile der Ifdef-Blöcke bleiben erhalten)
  */
 std::string process_conditionals(const std::string& text, const std::unordered_map<std::string, std::string>& defines) {
     std::istringstream stream(text);
     std::ostringstream output;
     std::string line;
 
-    bool inside_block = false;           // Merker, ob wir uns innerhalb eines \ifdef-Blocks befinden
-    bool skip_block = false;             // Merker, ob der aktuelle Block verworfen werden soll
-    std::string block_buffer;            // Zwischenspeicher für akzeptierte Zeilen eines Blocks
-    std::string current_macro;           // Name des Makros in \ifdef{...}
+    bool inside_if_block = false;    // Aktuell innerhalb eines \ifdef?
+    bool skip_if_block = false;      // Soll dieser Block aktuell übersprungen werden?
 
     while (std::getline(stream, line)) {
-        // Start eines \ifdef-Blocks
-        
-        if (!inside_block && line.find(R"(\ifdef{)") != std::string::npos) {
+
+        // Block-Beginn: \ifdef
+        if (!inside_if_block && line.find(R"(\ifdef{)") != std::string::npos) {
             size_t start = line.find('{') + 1;
             size_t end = line.find('}', start);
-            current_macro = line.substr(start, end - start);
-            inside_block = true;
-            skip_block = defines.find(current_macro) == defines.end();
-            block_buffer.clear();
+            std::string current_macro = line.substr(start, end - start);
+
+            inside_if_block = true;
+
+            // Prüfe, ob das Makro definiert ist
+            skip_if_block = defines.find(current_macro) == defines.end();
         }
-        // Ende eines \ifdef-Blocks
-        else if (inside_block && line.find(R"(\endif)") != std::string::npos) {
-            if (!skip_block) {
-                output << block_buffer;  // Nur behalten, wenn Makro definiert war
-            }
-            inside_block = false;
+
+        // Innerhalb eines Ifdef-Blocks: \else
+        else if (inside_if_block && line.find(R"(\else)") != std::string::npos) {
+            // Beim \else einfach die Logik umdrehen
+            skip_if_block = !skip_if_block;
         }
-        // Innerhalb eines aktiven Blocks – Zeilen sammeln oder ignorieren
-        else if (inside_block) {
-            if (!skip_block) {
-                block_buffer += line + "\n";
-            }
+
+        // Block-Ende: \endif
+        else if (inside_if_block && line.find(R"(\endif)") != std::string::npos) {
+            inside_if_block = false;
         }
-        // Zeile außerhalb jeglicher Blocks -> immer behalten
+
+        // Zeilenausgabe: nur wenn erlaubt
         else {
-            output << line << "\n";
+            if (!inside_if_block || !skip_if_block) {
+                output << line << "\n";
+            }
+            // (ansonsten, Zeile wird einfach ignoriert)
         }
     }
 

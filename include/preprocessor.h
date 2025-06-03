@@ -26,7 +26,7 @@ std::string replace_text_macros(const std::string& text, const std::unordered_ma
 std::string remove_defines(std::string& text);
 
 
-//Verarbeitet `\ifdef{ ... }`-Blöcke im LaTeX - ähnlichen Text abhängig von zuvor definierten Makros.
+// Verarbeitet \ifdef-Blöcke mit optionalem \else.
 std::string process_conditionals(const std::string& text, const std::unordered_map<std::string, std::string>& defines);
 
 

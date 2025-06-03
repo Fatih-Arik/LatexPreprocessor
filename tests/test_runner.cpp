@@ -127,5 +127,11 @@ void test_ifdef() {
     result = process_conditionals(input, defines);
     assert(result == expected && "ifdef-Block sollte nicht sichtbar sein");
 
+    // Test 3: \else-Block
+    input = "\\ifdef{DEBUG}\nNicht sichtbar\n\\else\nSichtbar\n\\endif\n";
+    expected = "Sichtbar\n";
+    result = process_conditionals(input, defines);
+    assert(result == expected && "else-Block sollte sichtbar sein");
+
     std::cout << "Alle ifdef-Tests erfolgreich bestanden!" << std::endl;
 }
