@@ -131,11 +131,37 @@ LatexPreprocessor -o output/out.tex -m config/macros.json input/example.tex
 - **Compiler:** MSVC (via Visual Studio)
 - **Bibliotheken:**
   - [`nlohmann/json`](https://github.com/nlohmann/json) 
-  - [`jarro2783/cxxopts`](https://github.com/jarro2783/cxxopts) 
+  - [`jarro2783/cxxopts`](https://github.com/jarro2783/cxxopts)
+  - [`catchorg/Catch2`](https://github.com/catchorg/Catch2) 
   - Standardbibliothek: `<regex>`, `<fstream>`, `<filesystem>`, etc.
 
 
 ---
+
+### Build & Tests (CMake-basiert, unter Windows getestet)
+
+#### 1. Erzeuge ein Build-Verzeichnis 
+`cmake -S . -B build`
+
+#### 2. Kompiliere das Projekt
+`cmake --build build`
+
+#### 3. Führe das Programm aus
+z.B `./build/Debug/latexprepro.exe pfad/zur/eingabe.tex`
+
+---
+
+### Unit Tests mit Catch2 (CMake integriert)
+
+Das Projekt verwendet Catch2 als leichtgewichtigen, portablen Unit-Testing-Framework.
+
+#### Tests ausführen
+
+`./build/Debug/test_runner.exe`
+
+Die Tests befinden sich in tests/test_runner.cpp und umfassen Makroverarbeitung, Bedingungen (\ifdef), und Formatkonvertierung.
+
+`Catch2 wird automatisch via FetchContent aus GitHub eingebunden, es ist keine manuelle Installation erforderlich. `
 
 ### Anforderungen 
 
