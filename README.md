@@ -2,9 +2,6 @@
 
 Das Ziel dieses Projekts war es, einen erweiterbaren Präprozessor für vereinfachtes LaTeX zu erstellen, um flexible Textformate effizienter zu schreiben und konvertieren zu können.
 
-## Motivation
-
-Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwendig sein. Dieses Tool vereinfacht die Nutzung typischer Konstrukte wie Brüche, Wurzeln oder Codeblöcke durch eine intuitive Makrosyntax.
 
 ---
 
@@ -113,13 +110,15 @@ int main() {
 | Option           | Beschreibung                                       | Standardwert               |
 | ---------------- | -------------------------------------------------- | -------------------------- |
 | `-o`, `--output` | Pfad zur Ausgabedatei                              | `./output/test_output.tex` |
-| `-f`, `--format` | Ausgabeformat (`latex`, `markdown`, `html`)        | `latex`                    |
 | `-m`, `--macros` | Pfad zur Makrodefinition (`.json`)                 | `./config/macros.json`     |
+|(Planung) `-f`, `--format` | Ausgabeformat (`latex`, `markdown`, `html`)| `latex`                   |
 | `input`          | Eingabedatei (Pflichtparameter, z. B. `input.tex`) | —                          |
 | `-h`, `--help`   | Zeigt Hilfe und Optionenbeschreibung an            | —                          |
 
+
+
 Beispiel:
-LatexPreprocessor -o output/out.tex -f latex -m config/macros.json input/example.tex
+LatexPreprocessor -o output/out.tex -m config/macros.json input/example.tex
 
 --- 
 
@@ -129,13 +128,47 @@ LatexPreprocessor -o output/out.tex -f latex -m config/macros.json input/example
 - **Compiler:** MSVC (via Visual Studio)
 - **Bibliotheken:**
   - [`nlohmann/json`](https://github.com/nlohmann/json) 
-  - [`jarro2783/cxxopts`](https://github.com/jarro2783/cxxopts) 
+  - [`jarro2783/cxxopts`](https://github.com/jarro2783/cxxopts)
+  - [`catchorg/Catch2`](https://github.com/catchorg/Catch2) 
   - Standardbibliothek: `<regex>`, `<fstream>`, `<filesystem>`, etc.
 
 
 ---
 
+### Build & Tests (CMake-basiert, unter Windows getestet)
+
+#### 1. Erzeuge ein Build-Verzeichnis 
+`cmake -S . -B build`
+
+#### 2. Kompiliere das Projekt
+`cmake --build build`
+
+#### 3. Führe das Programm aus
+z.B `./build/Debug/latexprepro.exe pfad/zur/eingabe.tex`
+
+---
+
+### Unit Tests mit Catch2 (CMake integriert)
+
+Das Projekt verwendet Catch2 als leichtgewichtigen, portablen Unit-Testing-Framework.
+
+#### Tests ausführen
+
+`./build/Debug/test_runner.exe`
+
+Die Tests befinden sich in tests/test_runner.cpp und umfassen Makroverarbeitung, Bedingungen (\ifdef), und Formatkonvertierung.
+
+`Catch2 wird automatisch via FetchContent aus GitHub eingebunden, es ist keine manuelle Installation erforderlich. `
+
 ### Anforderungen 
 
-* C++20-kompatibler Compiler (z. B. Visual Studio 2022)
+* C++20-kompatibler Compiler
+  * getestet mit MSVC (Visual Studio 2022)
+* CMake ≥ 3.16
+
+* Git (für automatische Catch2-Einbindung)
+
+* Getestet unter Windows 11
+
+* (Linux/macOS: geplant)
 
