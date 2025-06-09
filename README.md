@@ -2,9 +2,6 @@
 
 Das Ziel dieses Projekts war es, einen erweiterbaren Präprozessor für vereinfachtes LaTeX zu erstellen, um flexible Textformate effizienter zu schreiben und konvertieren zu können.
 
-## Motivation
-
-Die manuelle Erstellung komplexer LaTeX-Dokumente kann fehleranfällig und aufwendig sein. Dieses Tool vereinfacht die Nutzung typischer Konstrukte wie Brüche, Wurzeln oder Codeblöcke durch eine intuitive Makrosyntax.
 
 ---
 
