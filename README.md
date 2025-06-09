@@ -113,13 +113,15 @@ int main() {
 | Option           | Beschreibung                                       | Standardwert               |
 | ---------------- | -------------------------------------------------- | -------------------------- |
 | `-o`, `--output` | Pfad zur Ausgabedatei                              | `./output/test_output.tex` |
-| `-f`, `--format` | Ausgabeformat (`latex`, `markdown`, `html`)        | `latex`                    |
 | `-m`, `--macros` | Pfad zur Makrodefinition (`.json`)                 | `./config/macros.json`     |
+|(Planung) `-f`, `--format` | Ausgabeformat (`latex`, `markdown`, `html`)| `latex`                   |
 | `input`          | Eingabedatei (Pflichtparameter, z. B. `input.tex`) | —                          |
 | `-h`, `--help`   | Zeigt Hilfe und Optionenbeschreibung an            | —                          |
 
+
+
 Beispiel:
-LatexPreprocessor -o output/out.tex -f latex -m config/macros.json input/example.tex
+LatexPreprocessor -o output/out.tex -m config/macros.json input/example.tex
 
 --- 
 
