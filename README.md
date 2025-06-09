@@ -162,5 +162,13 @@ Die Tests befinden sich in tests/test_runner.cpp und umfassen Makroverarbeitung,
 
 ### Anforderungen 
 
-* C++20-kompatibler Compiler (z. B. Visual Studio 2022)
+* C++20-kompatibler Compiler
+  * getestet mit MSVC (Visual Studio 2022)
+* CMake ≥ 3.16
+
+* Git (für automatische Catch2-Einbindung)
+
+* Getestet unter Windows 11
+
+* (Linux/macOS: geplant)
 
