@@ -361,3 +361,39 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+# Build-Ordner
+/build/
+/out/
+/Debug/
+/Release/
+/x64/
+/*.vcxproj
+/*.vcxproj.*
+/*.sln
+/*.user
+
+# CMake-Artefakte
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+cmake_install.cmake
+CMakeSettings.json
+
+# Ninja
+*.ninja
+*.ninja_deps
+*.ninja_log
+
+# Catch2-FetchContent
+_deps/
+
+# Sonstige temporäre Dateien
+*.ilk
+*.pdb
+*.obj
+*.exe
+*.log
+*.tmp
+*.tlog

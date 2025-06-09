@@ -12,9 +12,9 @@ std::optional<CliConfig> parse_cli_args(int argc, char* argv[]){
 
         // Definiere die erwarteten Kommandozeilenoptionen
         options.add_options()
-            ("o,output", "Ausgabedatei", cxxopts::value<std::string>()->default_value("./output/test_output.tex"))
+            ("o,output", "Ausgabedatei", cxxopts::value<std::string>()->default_value("output/test_output.tex"))
             ("f,format", "Ausgabeformat (latex, markdown, html)", cxxopts::value<std::string>()->default_value("latex"))
-            ("m,macros", "Pfad zur Makrodefinition (JSON)", cxxopts::value<std::string>()->default_value("./config/macros.json"))
+            ("m,macros", "Pfad zur Makrodefinition (JSON)", cxxopts::value<std::string>()->default_value("config/macros.json"))
             ("input", "Eingabedatei (Pflichtparameter)", cxxopts::value<std::string>())
             ("h,help", "Hilfe anzeigen");
 

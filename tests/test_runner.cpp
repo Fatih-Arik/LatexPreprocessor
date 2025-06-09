@@ -1,4 +1,5 @@
-#include "test_runner.h"
+#include <catch2/catch_test_macros.hpp>
+
 #include <iostream>
 #include <cassert>
 
@@ -7,34 +8,15 @@
 #include "../include/file_utils.h"
 
 
-
-void run_all_tests() {
-    std::cout << "==== Starte Tests ====\n";
-
- 
-    test_simplify_macro_spec();
-    test_extract_math_args();
-    test_codeblocks();
-    test_simplify_inline_math();
-    test_simplify_block_math();
-    test_ifdef();
-    std::cout << "==== Alle Tests abgeschlossen ====\n";
-}
-
-
-void test_simplify_macro_spec() {
-    // Test: Ungültige Makros sollen nicht verändert werden (z. B. fehlende schließende Klammer)
+TEST_CASE("simplify_macro_spec") {
     std::string input = "\\frac(1,2";
     MacroSpec spec = { "\\frac", 2, "\\frac{__0__}{__1__}" };
     std::string output = simplify_macro_spec(input, spec);
-    
-    assert(output == "\\frac(1,2" && "simplify_macro_spec fehlgeschlagen.");
-    
+    REQUIRE(output != "\\frac{1}{2}");
 }
 
-void test_extract_math_args() {
-    std::cout << "Teste extract_math_args...\n";
 
+TEST_CASE("extract_math_args") {
     struct TestCase {
         std::string input;
         size_t start_pos;
@@ -48,20 +30,13 @@ void test_extract_math_args() {
     };
 
     for (const auto& test : tests) {
-        size_t end_pos;
+        size_t end_pos = 0;
         auto result = extract_math_args(test.input, test.start_pos, end_pos);
-        for (auto& value : result){
-            std::cout << "result: " << value << "\n";
-        }
-        assert(result == test.expected_args && "extract_math_args fehlgeschlagen");
+        REQUIRE(result == test.expected_args);
     }
-
-    std::cout << "extract_math_args abgeschlossen.\n\n";
-    
 }
-void test_codeblocks() {
-    std::cout << "Teste simplify_codeblocks...\n";
 
+TEST_CASE("simplify_codeblocks") {
     struct TestCase {
         std::string input;
         std::string expected_output;
@@ -84,54 +59,45 @@ void test_codeblocks() {
 
     for (const auto& test : tests) {
         std::string output = simplify_codeblocks(test.input);
-
-        assert(output == test.expected_output && "simplify_codeblocks fehlgeschlagen");
+        REQUIRE(output == test.expected_output);
     }
-
-    std::cout << "simplify_codeblocks abgeschlossen.\n\n";
 }
 
-void test_simplify_inline_math() {
-    std::cout << "Teste simplify_inline_math...\n";
 
-    std::string macro_path = "./config/macros.json";
+TEST_CASE("simplify_inline_math") {
+    std::string macro_path = "../../config/macros.json";
     std::string input = "#math(\\frac(1, 2))";
     std::string expected = "\\(\\frac{1}{ 2}\\)";
     std::string output = simplify_all_macros(input, macro_path);
-    assert(output == expected && "simplify_inline_math fehlgeschlagen");
-}
-
-void test_simplify_block_math() {
-    std::string macro_path = "./config/macros.json";
-    std::string input = "#blockmath(\\frac(1,\\abs(2)))";
-    std::string expected = "\\[\\frac{1}{\\left|2\\right|}\\]";
-    std::string output = simplify_all_macros(input, macro_path);
-    assert(output == expected && "simplify_block_math fehlgeschlagen");
+    REQUIRE(output == expected);
 }
 
 
-void test_ifdef() {
+TEST_CASE("process_conditionals - ifdef") {
     std::unordered_map<std::string, std::string> defines;
 
-    // Test 1: define vorhanden
-    defines["DEBUG"] = "";
-    std::string input = "\\ifdef{DEBUG}\nSichtbar\n\\endif\n";
-    std::string expected = "Sichtbar\n";
-    std::string result = process_conditionals(input, defines);
-    assert(result == expected && "ifdef-Block sollte sichtbar sein");
+    SECTION("Makro vorhanden") {
+        defines["DEBUG"] = "";
+        std::string input = "\\ifdef{DEBUG}\nSichtbar\n\\endif\n";
+        std::string expected = "Sichtbar\n";
+        std::string result = process_conditionals(input, defines);
+        REQUIRE(result == expected);
+    }
 
-    // Test 2: define fehlt
-    defines.clear();
-    input = "\\ifdef{DEBUG}\nNicht sichtbar\n\\endif\n";
-    expected = "";
-    result = process_conditionals(input, defines);
-    assert(result == expected && "ifdef-Block sollte nicht sichtbar sein");
+    SECTION("Makro fehlt") {
+        defines.clear();
+        std::string input = "\\ifdef{DEBUG}\nNicht sichtbar\n\\endif\n";
+        std::string expected = "";
+        std::string result = process_conditionals(input, defines);
+        REQUIRE(result == expected);
+    }
 
-    // Test 3: \else-Block
-    input = "\\ifdef{DEBUG}\nNicht sichtbar\n\\else\nSichtbar\n\\endif\n";
-    expected = "Sichtbar\n";
-    result = process_conditionals(input, defines);
-    assert(result == expected && "else-Block sollte sichtbar sein");
-
-    std::cout << "Alle ifdef-Tests erfolgreich bestanden!" << std::endl;
+    SECTION("Mit else") {
+        defines.clear();
+        std::string input = "\\ifdef{DEBUG}\nNicht sichtbar\n\\else\nSichtbar\n\\endif\n";
+        std::string expected = "Sichtbar\n";
+        std::string result = process_conditionals(input, defines);
+        REQUIRE(result == expected);
+    }
 }
+

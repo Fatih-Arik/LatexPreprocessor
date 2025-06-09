@@ -32,9 +32,18 @@ std::string read_file(const std::string& filename) {
 // Rückgabe: 
 //   - Keine Rückgabe. Gibt Erfolg oder Fehler über die Konsole aus.
 void save_to_file(const std::string& filename, const std::string& content) {
+    
+    std::filesystem::path output_path(filename);
+    // Ordner automatisch erzeugen, falls nicht vorhanden
+    try {
+        std::filesystem::create_directories(output_path.parent_path());
+    }
+    catch (const std::exception& e) {
+        std::cerr << "+++ Fehler beim Erstellen der Verzeichnisse: " << e.what() << "\n";
+    }
     std::ofstream out(filename);
     if (!out) {
-        std::cerr << "+++ Fehler: Datei konnte nicht gespeichert werden! +++" << "\n";
+        std::cerr << "+++ Fehler beim Öffnen der Datei zum Schreiben: " << filename << "\n";
         return;
     }
     out << content;
@@ -53,11 +62,10 @@ void save_to_file(const std::string& filename, const std::string& content) {
 nlohmann::json read_json_config(const std::string& filename) {
 
     std::filesystem::path config_path = std::filesystem::current_path() / filename;
-    config_path = config_path.generic_string();
-    std::cout << "Lade JSON aus: " << config_path << "\n";
+    std::cout << "Lade JSON aus: " << config_path.generic_string() << "\n";
     std::ifstream file(config_path);
     if (!file) {
-        std::cerr << "+++ Fehler: Konnte: " << config_path.string() << "nicht öffnen! +++\n";
+        std::cerr << "+++ Fehler: Konnte: " << config_path.generic_string() << "nicht öffnen! +++\n";
         return nlohmann::json();   // Gibt ein leeres JSON-Objekt zurück
     }
    
