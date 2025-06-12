@@ -1,7 +1,7 @@
 
-#include "..\include\macro_utils.h"
-#include "..\include\preprocessor.h"
-#include "..\include\file_utils.h"
+#include "macro_utils.h"
+#include "preprocessor.h"
+#include "file_utils.h"
 
 
 #include <iostream>

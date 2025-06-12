@@ -6,11 +6,11 @@
 // ------------------------------
 
 
-#include "../include/preprocessor.h"
-#include "../include/file_utils.h"
-#include "../include/converter.h"
-#include "../include/macro_utils.h"
-#include "../include/cli_utils.h"
+#include "preprocessor.h"
+#include "file_utils.h"
+#include "converter.h"
+#include "macro_utils.h"
+#include "cli_utils.h"
 
 
 #include <iostream>
@@ -18,7 +18,7 @@
 
 
 //#define TEST_MODE
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 #ifdef TEST_MODE
 #include "../tests/test_runner.h"
@@ -35,7 +35,9 @@ int run_preprocessor(int argc, char* argv[]) {
 
 
     auto configOpt = parse_cli_args(argc, argv);
-    if (!configOpt) return 1;
+    if (!configOpt) {
+        return 1;
+    }
 
     CliConfig config = *configOpt;
 
@@ -43,13 +45,6 @@ int run_preprocessor(int argc, char* argv[]) {
     std::cout << "Ausgabedatei: " << config.output_file << "\n";
     std::cout << "Format: " << config.format << "\n";
     std::cout << "Makro-Datei: " << config.macro_file << "\n";
-
-    //std::string input_file = config.value("input_file", "latex_docs/test_input.tex");
-    //std::string output_file = config.value("output_file", "output/test_output.tex");
-    //std::string output_folder = config.value("output_folder", "output/");
-    //std::string pdflatex_path = config.value("pdflatex_path", "C:/Users/fatih/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe");
-    //std::string output_format = config.value("output_format", "latex"); 
-    //// ##TODO## bool keep_intermediate_files = config.value("keep_intermediate_files", false); 
 
 
     std::string content = read_file(config.input_file);

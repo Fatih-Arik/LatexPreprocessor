@@ -3,9 +3,12 @@
 #include <iostream>
 #include <cassert>
 
-#include "../include/macro_utils.h" 
-#include "../include/preprocessor.h"
-#include "../include/file_utils.h"
+#include "macro_utils.h" 
+#include "preprocessor.h"
+#include "file_utils.h"
+#include "cli_utils.h"
+
+#include <filesystem>
 
 
 TEST_CASE("simplify_macro_spec") {
@@ -65,7 +68,7 @@ TEST_CASE("simplify_codeblocks") {
 
 
 TEST_CASE("simplify_inline_math") {
-    std::string macro_path = "../../config/macros.json";
+    std::string macro_path = get_default_macro_path().string();
     std::string input = "#math(\\frac(1, 2))";
     std::string expected = "\\(\\frac{1}{ 2}\\)";
     std::string output = simplify_all_macros(input, macro_path);

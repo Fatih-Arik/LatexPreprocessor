@@ -1,4 +1,4 @@
-#include "../include/file_utils.h"
+#include "file_utils.h"
 
 
 
@@ -39,11 +39,11 @@ void save_to_file(const std::string& filename, const std::string& content) {
         std::filesystem::create_directories(output_path.parent_path());
     }
     catch (const std::exception& e) {
-        std::cerr << "+++ Fehler beim Erstellen der Verzeichnisse: " << e.what() << "\n";
+        std::cerr << "+++ Fehler beim Erstellen der Verzeichnisse: " << e.what() << " +++\n";
     }
     std::ofstream out(filename);
     if (!out) {
-        std::cerr << "+++ Fehler beim Öffnen der Datei zum Schreiben: " << filename << "\n";
+        std::cerr << "+++ Fehler beim Öffnen der Datei zum Schreiben: " << filename << "+++\n";
         return;
     }
     out << content;
@@ -61,19 +61,21 @@ void save_to_file(const std::string& filename, const std::string& content) {
 //   (bei Fehler ein leeres JSON-Objekt)
 nlohmann::json read_json_config(const std::string& filename) {
 
-    std::filesystem::path config_path = std::filesystem::current_path() / filename;
-    std::cout << "Lade JSON aus: " << config_path.generic_string() << "\n";
-    std::ifstream file(config_path);
+    std::cout << "Lade JSON aus: " << filename << "\n";
+    std::ifstream file(filename);
     if (!file) {
-        std::cerr << "+++ Fehler: Konnte: " << config_path.generic_string() << "nicht öffnen! +++\n";
+        std::cerr << "+++ Fehler: Konnte: " << filename << "sein +++\n";
         return nlohmann::json();   // Gibt ein leeres JSON-Objekt zurück
     }
-   
-    nlohmann::json config;
-    file >> config;  // Datei in JSON-Objekt einlesen
-    
-    return config;
-
+    try {
+        nlohmann::json config;
+        file >> config;  // Datei in JSON-Objekt einlesen
+        return config;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "+++ Fehler beim Parsen der JSON-Datei: " << e.what() << "\n";
+        return nlohmann::json();
+    }
 }
 
 // Liest den Inhalt von macros.json und gibt den Inhalt als unordered_map zurück

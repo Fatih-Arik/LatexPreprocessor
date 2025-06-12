@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../include/macro_utils.h"
-#include "../include/json.hpp"
+#include "macro_utils.h"
+#include "json.hpp"
 
 #include <string>
 #include <unordered_map>

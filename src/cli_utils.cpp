@@ -1,7 +1,20 @@
-#include "../include/cli_utils.h"
-#include "../include/cxxopts.hpp"
+#include "cli_utils.h"
+#include "cxxopts.hpp"
 
 #include <iostream>
+
+
+#ifndef PROJECT_DIR
+#define PROJECT_DIR "."
+#endif
+
+std::filesystem::path get_default_macro_path() {
+    return std::filesystem::path(PROJECT_DIR) / "config" / "macros.json";
+}
+
+std::filesystem::path get_default_output_path() {
+    return std::filesystem::path(PROJECT_DIR) / "output" / "test_output.tex";
+}
 
 
 // Funktion zum Parsen der Kommandozeilenargumente mit Hilfe der cxxopts-Bibliothek
@@ -12,9 +25,9 @@ std::optional<CliConfig> parse_cli_args(int argc, char* argv[]){
 
         // Definiere die erwarteten Kommandozeilenoptionen
         options.add_options()
-            ("o,output", "Ausgabedatei", cxxopts::value<std::string>()->default_value("output/test_output.tex"))
+            ("o,output", "Ausgabedatei", cxxopts::value<std::string>()->default_value(get_default_output_path().generic_string()))
             ("f,format", "Ausgabeformat (latex, markdown, html)", cxxopts::value<std::string>()->default_value("latex"))
-            ("m,macros", "Pfad zur Makrodefinition (JSON)", cxxopts::value<std::string>()->default_value("config/macros.json"))
+            ("m,macros", "Pfad zur Makrodefinition (JSON)", cxxopts::value<std::string>()->default_value(get_default_macro_path().generic_string()))
             ("input", "Eingabedatei (Pflichtparameter)", cxxopts::value<std::string>())
             ("h,help", "Hilfe anzeigen");
 
