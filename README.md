@@ -138,7 +138,7 @@ Das Projekt verwendet Catch2 als modernes C++-Test-Framework.
 ### Voraussetzung
 * C++20-kompatibler Compiler
 * Git (für Catch2 via FetchContent)
-* CMake ≥ 3.16
+* CMake (getestet unter der Version 4.0.2)
 
 ### Schritte
 
@@ -156,7 +156,7 @@ Das Projekt verwendet Catch2 als modernes C++-Test-Framework.
 ## Technologien
 
 - **Sprache:** C++20
-- **Buildsystem:** CMake
+- **Buildsystem:** [`CMake`](https://cmake.org/download/)
 - **Bibliotheken:**
   - [`nlohmann/json`](https://github.com/nlohmann/json) 
   - [`jarro2783/cxxopts`](https://github.com/jarro2783/cxxopts)
