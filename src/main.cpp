@@ -17,7 +17,7 @@
 #include <unordered_map>
 
 
-//#define TEST_MODE
+
 //#define DEBUG_MODE
 
 #ifdef TEST_MODE
@@ -82,30 +82,13 @@ int run_preprocessor(int argc, char* argv[]) {
     save_to_file(config.output_file, content);
 
 
-    //if (generate_pdf(output_folder, output_file, pdflatex_path) == 0) {
-    //    std::cout << "### PDF erfolgreich generiert! ###" << "\n";
-
-    //    //TODO
-    //    //if (!keep_intermediate_files) {
-    //    //    //cleanup_intermediate_files(output_folder, output_file);
-    //    //    std::cout << "Temporäre Dateien entfernt.\n";
-    //    //}
-    //}
-    //else {
-    //    std::cerr << "+++ Fehler beim Generieren der PDF! +++" <<  "\n";
-    //}
     return 0;
 
 }
 int main(int argc, char* argv[]) {
-    #ifdef TEST_MODE
-    run_all_tests();
-    return 0;
-    #else
     
     std::cout << "### Latex Preprocessor... ###\n";
 
     run_preprocessor(argc, argv);
     return 0;
-    #endif
 }
