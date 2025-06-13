@@ -146,35 +146,31 @@ std::string replace_text_macros(const std::string& text, const std::unordered_ma
 
 
 /**
- * Entfernt alle `\define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
+ * Entfernt alle `\define`-Makros aus dem Text.
  *
- * Dabei wird jede Zeile, die mit `\define` beginnt, durch ein Platzhalter-Marker ersetzt
- * und anschließend vollständig entfernt. So bleiben keine unnötigen Leerzeilen im Text zurück.
+ * Dabei wird jede Zeile, die mit `\define` beginnt, vollständig entfernt.
  *
  * Parameter:
- *     text – Referenz auf den LaTeX-Text, aus dem Makros entfernt werden sollen.
+ *     text – Der gesamte LaTeX-Eingabetext.
  *
  * Rückgabe:
- *     Der bereinigte Text ohne `\define`-Makros und leere Makro-Zeilen.
+ *     Der bereinigte Text ohne `\define`-Makros.
  */
-std::string remove_defines(std::string& text) {
-    // 1. Ersetze alle \define-Zeilen durch einen Platzhalter
-    // ^          Zeilenanfang
-    // \define    Das wörtliche Schlüsselwort
-    // .*         Beliebige Zeichen bis zum Ende der Zeile
-    // $          Zeilenende
-    std::regex macro_regex(R"(^\\define.*$)");
-    text = std::regex_replace(text, macro_regex, "+HIDDEN+");
+std::string remove_defines(const std::string& text) {
+    std::istringstream input_stream(text);
+    std::ostringstream output_stream;
+    std::string line;
 
-    // 2. Entferne alle Zeilen, die nur aus dem Marker + evtl. Leerzeichen + \n bestehen
-    // ^              Zeilenanfang
-    // \+HIDDEN\+     Der Marker
-    // \s*            Optional: Leerzeichen oder Tabs
-    // \n             Zeilenumbruch
-    std::regex empty_line_regex(R"(^\+HIDDEN\+\s*\n)");
-    text = std::regex_replace(text, empty_line_regex, "");
+    while (std::getline(input_stream, line)) {
+        // Zeilen, die mit "\define" beginnen, überspringen
+        if (line.starts_with("\\define")) {
+            continue;
+        }
 
-    return text;
+        output_stream << line << '\n';
+    }
+
+    return output_stream.str();
 }
 
 

@@ -22,8 +22,8 @@ std::unordered_map<std::string, std::string> extract_defines(const std::string& 
 std::string replace_text_macros(const std::string& text, const std::unordered_map<std::string, std::string>& macros);
 
 
-// Entfernt alle `\define`-Makros aus dem Text sowie die zugehörigen Leerzeilen.
-std::string remove_defines(std::string& text);
+//Entfernt alle `\define`-Makros aus dem Text.
+std::string remove_defines(const std::string& text);
 
 
 // Verarbeitet \ifdef-Blöcke mit optionalem \else.
