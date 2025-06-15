@@ -153,6 +153,7 @@ Das Projekt verwendet Catch2 als modernes C++-Test-Framework.
 `./build/Debug/latexprepro.exe pfad/zur/eingabe.tex`
 
 ---
+
 ## Technologien
 
 - **Sprache:** C++20
