@@ -31,7 +31,7 @@ Ein modularer und erweiterbarer Präprozessor für vereinfachte LaTeX-Syntax. Zi
 
 Makros wie \frac, \sqrt, \log, \pow etc. werden zur Laufzeit aus einer JSON-Datei geladen:
 
-* Erste Zahl = Anzahl der Argumente
+* arg_count = Anzahl der Argumente
 
 * \__0__, \__1__, … = Platzhalter für Argumente
 
@@ -41,8 +41,16 @@ Beispiel (`dynamic_macro.json`):
 
 ```json
 {
-  "\frac": [2, "\\frac{__0__}{__1__}"],
-  "\sqrt": [1, "\\sqrt{__0__}"]
+  "\\frac": {
+  "type": "format",
+  "arg_count": 2,
+  "replacement": "\\frac{__0__}{__1__}"
+},
+"\\sqrt": {
+  "type": "format",
+  "arg_count": 1,
+  "replacement": "\\sqrt{__0__}"
+}
 }
 ```
 
