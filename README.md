@@ -176,6 +176,5 @@ Das Projekt verwendet Catch2 als modernes C++-Test-Framework.
 
 ## Getestet unter 
 * Windows 11
-
-* Unterstützung für Linux/macOS: **in Arbeit**
+* Debian
 
