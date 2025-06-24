@@ -134,11 +134,11 @@ latexprepro -o output/out.tex -m config/macros.json latex_docs/komplex.tex
 
 Das Projekt verwendet Catch2 als modernes C++-Test-Framework.
 
-* Testquelle: `tests/test_runner.cpp`
+* Testquelle: `test_runner.cpp`
 * Getestet: Makroverarbeitung, Bedingungsersetzung (\ifdef)
 
 ### Ausführung (nach Build)
-`./build/Debug/test_runner.exe`
+`./build/test_runner`
 
 --- 
 
