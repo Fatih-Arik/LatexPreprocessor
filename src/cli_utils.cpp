@@ -8,8 +8,11 @@
 #define PROJECT_DIR "."
 #endif
 
+//In der CMakeLists.txt wird eine eine globale Konstante zur Kompilierzeit definiert: PROJECT_DIR
+//Wird im C++ - Code als Pfad zur Projektwurzel verwendet
+//add_compile_definitions(PROJECT_DIR = "${CMAKE_SOURCE_DIR}")
 std::filesystem::path get_default_macro_path() {
-    return std::filesystem::path(PROJECT_DIR) / "config" / "macros.json";
+    return std::filesystem::path(PROJECT_DIR) / "config" / "dynamic_macro.json";
 }
 
 std::filesystem::path get_default_output_path() {

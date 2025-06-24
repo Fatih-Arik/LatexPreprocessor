@@ -2,18 +2,22 @@
 
 #include <iostream>
 #include <cassert>
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include <filesystem>
+
 
 #include "macro_utils.h" 
 #include "preprocessor.h"
 #include "file_utils.h"
 #include "cli_utils.h"
 
-#include <filesystem>
 
 
 TEST_CASE("simplify_macro_spec") {
     std::string input = "\\frac(1,2";
-    MacroSpec spec = { "\\frac", 2, "\\frac{__0__}{__1__}" };
+    macro_spec spec = { "\\frac", 2, "\\frac{__0__}{__1__}" };
     std::string output = simplify_macro_spec(input, spec);
     REQUIRE(output != "\\frac{1}{2}");
 }
@@ -36,6 +40,38 @@ TEST_CASE("extract_math_args") {
         size_t end_pos = 0;
         auto result = extract_math_args(test.input, test.start_pos, end_pos);
         REQUIRE(result == test.expected_args);
+    }
+}
+
+TEST_CASE("replace_text_macros") {
+    SECTION("Einfacher Makroersatz") {
+        std::string text = "Hallo NAME";
+        std::unordered_map<std::string, std::string> macros = { {"NAME", "Max"} };
+        
+        REQUIRE(replace_text_macros(text, macros) == "Hallo Max");
+    }
+
+    SECTION("Makro nicht in zusammengesetzten Wörtern ersetzen") {
+        std::string text = "USERNAME";
+        std::unordered_map<std::string, std::string> macros = { {"NAME", "Max"} };
+        REQUIRE(replace_text_macros(text, macros) == "USERNAME");
+    }
+
+    SECTION("Makro ist escaped") {
+        std::string text = "Hallo \\NAME";
+        std::unordered_map<std::string, std::string> macros = { {"NAME", "Max"} };
+
+        // Aktuelles Verhalten: \NAME wird zu \Max
+        REQUIRE(replace_text_macros(text, macros) == "Hallo \\Max");
+    }
+
+    SECTION("Mehrere Makros ersetzen") {
+        std::string text = "Hallo NAME, Autor: AUTHOR";
+        std::unordered_map<std::string, std::string> macros = {
+            {"NAME", "Max"},
+            {"AUTHOR", "Fatih"}
+        };
+        REQUIRE(replace_text_macros(text, macros) == "Hallo Max, Autor: Fatih");
     }
 }
 
@@ -70,11 +106,46 @@ TEST_CASE("simplify_codeblocks") {
 TEST_CASE("simplify_inline_math") {
     std::string macro_path = get_default_macro_path().string();
     std::string input = "#math(\\frac(1, 2))";
-    std::string expected = "\\(\\frac{1}{ 2}\\)";
-    std::string output = simplify_all_macros(input, macro_path);
+    std::string expected = "\\(\\frac(1, 2)\\)";
+    std::string output = simplify_inline_math(input);
     REQUIRE(output == expected);
 }
 
+TEST_CASE("extract_define") {
+    SECTION("Makro nur mit Key") {
+        std::string input = "\\define{DEBUG}";
+        std::unordered_map<std::string, std::string> expected = { { "DEBUG", "" } };
+        auto result = extract_defines(input);
+        REQUIRE(result == expected);
+    }
+
+    SECTION("Makro mit Key und Wert") {
+        std::string input = "\\define{AUTHOR}{Fatih}";
+        std::unordered_map<std::string, std::string> expected = { { "AUTHOR", "Fatih" } };
+        auto result = extract_defines(input);
+        REQUIRE(result == expected);
+    }
+
+    SECTION("Mehrere Makros") {
+        std::string input = "\\define{ A }{1}\n\\define{ B }{2}";
+        std::unordered_map<std::string, std::string> expected = { {" A ", "1"}, {" B ", "2"} };
+        auto result = extract_defines(input);
+        REQUIRE(result == expected);
+    }
+
+    SECTION("Fehlerhafte Zeile wird ignoriert") {
+        std::string input = "\\define{BROKEN";
+        auto result = extract_defines(input);
+        REQUIRE(result.empty());
+    }
+
+    SECTION("nicht Define Zeile") {
+        std::string input = "Das ist ein normaler Satz.";
+        auto result = extract_defines(input);
+        REQUIRE(result.empty());
+    }
+
+}
 
 TEST_CASE("process_conditionals - ifdef") {
     std::unordered_map<std::string, std::string> defines;
@@ -103,4 +174,5 @@ TEST_CASE("process_conditionals - ifdef") {
         REQUIRE(result == expected);
     }
 }
+
 

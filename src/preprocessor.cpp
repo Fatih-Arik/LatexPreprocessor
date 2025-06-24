@@ -9,106 +9,123 @@
 #include <vector>
 
 
- 
-
 /**
- * Ersetzt alle `\include{"filename"}`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
+ * Ersetzt alle `\include{...}`-Anweisungen im Text durch den Inhalt der referenzierten Datei.
  *
- * Die Funktion durchsucht den Text zeilenweise nach Include-Direktiven und ersetzt sie mit dem Inhalt
- * der jeweils referenzierten Datei. Dabei werden nur gültige Zeilen berücksichtigt,
- * die dem Muster `\include{"pfad/zur/datei.tex"}` entsprechen.
+ * Die Funktion verarbeitet den Text zeilenweise und erkennt Zeilen, die mit `\include` beginnen.
+ * Der Dateiname wird aus der geschweiften Klammer extrahiert und mit `read_file(...)` geladen.
  *
  * Parameter:
- *     content – Der vollständige LaTeX-Text, in dem Includes verarbeitet werden sollen.
+ *     content – Der gesamte LaTeX-Text, in dem `\include`-Makros ersetzt werden sollen.
  *
  * Rückgabe:
- *     Ein neuer Text, in dem alle `\include`-Anweisungen ersetzt wurden.
+ *     Ein neuer Text, in dem alle `\include{...}`-Anweisungen ersetzt wurden.
  */
-
 std::string process_include(const std::string& content) {
 
-
-    // \include\s*{\s*"(.*?)"\s*}
-    // \include -> Sucht nach dem Schlüsselwort `\include`
-    //    (.*?) -> Greift den Dateinamen ab:
-    //      \s* -> Beliebig viele Leerzeichen sind erlaubt
-    //        . -> Beliebiges Zeichen (auch Leerzeichen)
-    //        * -> Beliebig viele Zeichen (einschließlich keiner)
-    //        ? -> Minimal greedy: Nimmt nur so viele Zeichen, bis das nächste `"` erscheint
-    std::regex include_regex(R"(\\include\s*\{\s*\"(.*?)\"\s*\})");
-
-    std::stringstream result;
-    std::istringstream stream(content);
+    std::ostringstream result;
+    std::istringstream input(content);
     std::string line;
-    std::string include_file;          
+    std::string include_file;
     std::string included_content;
+    std::size_t open_bracket;
+    std::size_t close_bracket;
 
-  
-    while (std::getline(stream, line)) {
+    while (std::getline(input, line)) {
 
-        std::smatch match;
-        if (std::regex_search(line, match, include_regex)) {    // regex_search prüft ob ein Teil des Strings übereinstimmt, damit wir \include innerhalb eines Textes verwenden können
-            include_file = match[1].str();          // Extrahierter Dateiname
+        // Prüft, ob die Zeile mit dem Include-Makro beginnt
+        if (line.starts_with("\\include")) {
+
+            // Bestimme die Positionen der geschweiften Klammern
+            open_bracket = line.find("{") + 1;
+            close_bracket = line.find("}", open_bracket);
+
+            // Fehlerbehandlung: Ungültige Klammerpositionen -> Zeile unverändert übernehmen
+            if (open_bracket == std::string::npos || close_bracket == std::string::npos) {
+                std::cerr << "+++ Fehler bei \\include +++ " << "\n";
+                result << line << "\n";
+                continue;
+            }
+
+            // Extrahiere Dateinamen zwischen den Klammern
+            include_file = line.substr(open_bracket, close_bracket - open_bracket);
+
+            // Lade Dateiinhalte und füge sie in den Text ein
             included_content = read_file(include_file);
             result << included_content << "\n";
         }
         else {
             result << line << "\n";
         }
-    }    
+    }
+
     return result.str();
 }
 
 
+
 /**
- * Extrahiert alle `\define`-Makros aus dem Quelltext und speichert sie als Schlüssel-Wert-Paare.
+ * Extrahiert alle \define-Makros aus dem LaTeX-Quelltext.
  *
- * Ein Makro kann im Format `\define{KEY}` oder `\define{KEY}{WERT}` vorliegen.
- * Zeilen, die diesem Muster entsprechen, werden analysiert und gesammelt.
- *
+ * Beispiele:
+ *   \define{AUTHOR}{Max}   → "AUTHOR" → "Max"
+ *   \define{DEBUG}         → "DEBUG"  → ""
  * 
- * Beispiel:
- *     \define{AUTHOR}{Max Mustermann} → Makro["AUTHOR"] = "Max Mustermann"
- *     \define{DEBUG}                  → Makro["DEBUG"]  = ""
- *
  * Parameter:
- *     content – Der vollständige Eingabetext, in dem nach Makros gesucht wird.
- *
+ *      content – Der vollständige Eingabetext, in dem nach Makros gesucht wird.
  * Rückgabe:
- *     Eine HashMap (unordered_map), die alle gefundenen Makros enthält.
+ *      Eine HashMap (unordered_map), die alle gefundenen Makros enthält.
  */
+
 std::unordered_map<std::string, std::string> extract_defines(const std::string& content) {
-    // Regex zum Erfassen von Makros im Format:
-    // \define{NAME}             → ohne Wert
-    // \define{NAME}{WERT}       → mit Wert
-    // (\w+)     = der Makroname (Buchstaben/Zahlen/_)
-    // (?:...)   = non-capturing group, damit {...} optional ist
-    // (.*)      = der Makro-Wert (alles innerhalb der zweiten Klammer)
-    std::regex define_regex(R"(\\define\{(\w+)\}(?:\{(.*)\})?)");
+    
     std::unordered_map<std::string, std::string> macros;
-    std::istringstream stream(content); 
+    std::istringstream input(content);
 
-    std::string key;               
-    std::string value;             
-    std::string line; 
+    std::string key;
+    std::string value;
+    std::string line;
+    size_t key_open_bracket;
+    size_t key_close_bracket;
+    size_t value_open_bracket;
+    size_t value_close_bracket;
 
-    // Zeile für Zeile durchgehen
-    while (std::getline(stream, line)) {
-        std::smatch match; 
+        
+    while (std::getline(input, line)) {
+        
+        if (!line.starts_with("\\define")) {
+            continue;
+        }
+        // vom Define-Makro den Key extrahieren
+        key_open_bracket = line.find("{");
+        key_close_bracket = line.find("}", key_open_bracket);
 
-        // Prüft, ob die Zeile zu unserem \define-Muster passt
-        if (std::regex_match(line, match, define_regex)) {  
-            key = match[1].str();                           // Der Makroname (z. B. "DEBUG", "AUTHOR")                  
+        // Fehlerbehandlung: Ungültige Klammerpositionen
+        if (key_open_bracket == std::string::npos || key_close_bracket == std::string::npos) {
+            std::cerr << "+++ Syntaxfehler in \\define-Zeile (kein Key): " << line << "\n";
+            continue;
+        }
+        // Der Makro Bezeichner soll als Schlüssel des HashMaps gespeichert werden
+        // {wert}
+        key = line.substr(key_open_bracket + 1, key_close_bracket - key_open_bracket - 1);
 
-            // Prüfe, ob ein Wert vorhanden war (zweites Gruppen-Match)
-            if (match[2].matched) {
-                value = match[2].str();        // Wert extrahieren
-            }
-            else {
-                value = "";                    // Kein Wert → leerer String
-            }
+        //ggf. enthält der Define Makro einen Value 
+        value_open_bracket = line.find("{", key_close_bracket);
+        value_close_bracket = line.find("}", value_open_bracket);
+
+
+        if (value_open_bracket != std::string::npos && value_close_bracket != std::string::npos) {
+            std::string value = line.substr(value_open_bracket + 1, value_close_bracket - value_open_bracket - 1);
             macros[key] = value;
         }
+        else if (value_open_bracket == std::string::npos && value_close_bracket == std::string::npos) {
+            macros[key] = "";  // Kein Wert
+        }
+        else {
+            std::cerr << "+++ Syntaxfehler in \\define-Zeile (unvollständiger Value): " << line << "\n";
+            continue;
+        }
+    
     }
 
     return macros; // Gibt die HashMap mit allen gefundenen Makros zurück
@@ -133,17 +150,23 @@ std::unordered_map<std::string, std::string> extract_defines(const std::string& 
  * Rückgabe:
  *     Der verarbeitete Text mit allen Makro-Ersetzungen.
  */
-std::string replace_text_macros(const std::string& text, const std::unordered_map<std::string, std::string>& macros) {
 
+std::string replace_text_macros(
+    const std::string& text,
+    const std::unordered_map<std::string, std::string>& macros)
+{
     std::string result = text;
-    // \b stellt sicher, dass nur ganze Wörter ersetzt werden
-    for (const auto& macro : macros) {
-        std::regex macro_regex("\\b" + macro.first + "\\b");
-        result = std::regex_replace(result, macro_regex, macro.second);
+
+    for (const auto& [key, value] : macros) {
+        // \bKEY\b   -> exakte Wortübereinstimmung (KEY als ganzes Wort)
+        std::string pattern_str = "\\b" + key + "\\b";
+        std::regex pattern(pattern_str);
+
+        result = std::regex_replace(result, pattern, value);
     }
+    
     return result;
 }
-
 
 /**
  * Entfernt alle `\define`-Makros aus dem Text.

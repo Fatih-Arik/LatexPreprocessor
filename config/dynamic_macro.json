@@ -1,0 +1,40 @@
+{
+  "\\frac": {
+    "type": "format",
+    "arg_count": 2,
+    "replacement": "\\frac{__0__}{__1__}"
+  },
+  "\\sqrt": {
+    "type": "format",
+    "arg_count": 1,
+    "replacement": "\\sqrt{__0__}"
+  },
+  "\\pow": {
+    "type": "format",
+    "arg_count": 2,
+    "replacement": "\\pow{__0__}^{__1__}"
+  },
+  "\\abs": {
+    "type": "format",
+    "arg_count": 1,
+    "replacement": "\\abs{__0__}"
+  },
+  "\\log": {
+    "type": "format",
+    "arg_count": 1,
+    "replacement": "\\log{__0__}"
+  },
+  "#codeblock": {
+    "type": "codeblock"
+  },
+  "\\define": {
+    "type": "define"
+  },
+  "\\ifdef": {
+    "type": "conditional"
+  },
+  "\\include": {
+    "type": "include"
+  }
+}
+

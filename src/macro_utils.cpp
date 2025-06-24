@@ -9,10 +9,10 @@
 
 /**
  * Extrahiert die Argumente eines Makros mit runder Klammer-Syntax wie:
- *   - frac(1, 2)
- *   - sqrt(frac(4, 9))
+ *   - \frac(1, 2)
+ *   - \sqrt(frac(4, 9))
  *
- * Die Funktion erkennt auch verschachtelte Makros korrekt (z. B. frac(1, sqrt(2))).
+ * Die Funktion erkennt auch verschachtelte Makros korrekt (z. B. \frac(1, \sqrt(2))).
  *
  * Parameter:
  * - text: Gesamter Quelltext.
@@ -37,7 +37,7 @@ std::vector<std::string> extract_math_args(const std::string& text, size_t start
         if (c == '(') {
             brace_depth++;
             if (brace_depth > 1) {
-                // gehört zu einem inneren Ausdruck (z. B. frac(1, sqrt(2)))
+                // gehört zu einem inneren Ausdruck (z. B. \frac(1, \sqrt(2)))
                 arg += c;
             }
         }
@@ -55,7 +55,7 @@ std::vector<std::string> extract_math_args(const std::string& text, size_t start
             }
         }
         else if (c == ',' && brace_depth == 1) {
-            // Trennzeichen auf oberster Ebene → Argument abschließen
+            // Trennzeichen auf oberster Ebene -> Argument abschließen
             result.push_back(arg);
             arg.clear();
         }
@@ -75,18 +75,18 @@ std::vector<std::string> extract_math_args(const std::string& text, size_t start
  * Nützlich zum dynamischen Erzeugen von LaTeX-Ausdrücken wie \frac{...}{...}.
  *
  * Parameter:
- *     format – Der Formatstring mit nummerierten Platzhaltern.
+ *     replacement – Der Formatstring mit nummerierten Platzhaltern.
  *     args   – Die Argumente, die eingesetzt werden sollen.
  *
  * Rückgabe:
  *     Der fertige String, in dem alle Platzhalter ersetzt wurden.
  */
-std::string apply_format(const std::string& format, const std::vector<std::string>& args) {
-    std::string result = format;
+std::string apply_format(const std::string& replacement, const std::vector<std::string>& args) {
+    std::string result = replacement;
     for (size_t i = 0; i < args.size(); i++) {
         std::string placeholder = "__" + std::to_string(i) + "__";
         size_t pos;
-        // Ersetze alle Vorkommen von "__i__" im Format
+        // Ersetze alle Vorkommen von "__i__" 
         while ((pos = result.find(placeholder)) != std::string::npos) {
 
             result.replace(pos, placeholder.length(), args[i]);
@@ -103,7 +103,7 @@ std::string apply_format(const std::string& format, const std::vector<std::strin
  * Vereinfacht rekursiv ein bestimmtes Makro im Text anhand der übergebenen Spezifikation.
  *
  * Beispiel:
- *     Eingabe:  "frac(1, 2)"
+ *     Eingabe:  "\frac(1, 2)"
  *     Spezifikation: { "frac", 2, "\\frac{__0__}{__1__}" }
  *     Ausgabe: "\\frac{1}{2}"
  *
@@ -114,7 +114,7 @@ std::string apply_format(const std::string& format, const std::vector<std::strin
  * Rückgabe:
  *     Der überarbeitete Text mit allen vorkommenden Makros ersetzt.
  */
-std::string simplify_macro_spec(const std::string& text, const MacroSpec& spec) {
+std::string simplify_macro_spec(const std::string& text, const macro_spec& spec) {
     std::string result = text;
     size_t pos = 0;
     size_t end_pos = 0;
@@ -141,7 +141,7 @@ std::string simplify_macro_spec(const std::string& text, const MacroSpec& spec) 
         }
 
         // Ersetze durch LaTeX-Befehl
-        std::string replacement = apply_format(spec.format, args);
+        std::string replacement = apply_format(spec.replacement, args);
         result.replace(pos, end_pos - pos + 1, replacement);
 
         // Fahre an der neuen Position fort
@@ -158,8 +158,8 @@ std::string simplify_macro_spec(const std::string& text, const MacroSpec& spec) 
  * Wandelt Ausdrücke wie #math(...) oder #blockmath(...) in die entsprechende LaTeX-Umgebung um.
  *
  * Beispiel:
- *   #math(frac(1, 2))      -> \(frac(1, 2)\)
- *   #blockmath(frac(1, 2)) -> \[frac(1, 2)\]
+ *   #math(\frac(1, 2))      -> \(\frac(1, 2)\)
+ *   #blockmath(\frac(1, 2)) -> \[\frac(1, 2)\]
  *
  * Diese Funktion erkennt das passende Makro (#math oder #blockmath), extrahiert den Ausdruck
  * und umschließt ihn mit LaTeX-Inline- bzw. Block-Mathe-Klammern.
@@ -205,7 +205,7 @@ std::string simplify_math_wrapper(const std::string& text, bool is_block) {
  * Wandelt alle #math(...)-Makros in LaTeX-Inline-Mathe (\(...\)) um.
  *
  * Beispiel:
- *   #math(frac(1, 2)) -> \( \frac{1}{2} \)
+ *   #math(\frac(1, 2)) -> \( \frac{1}{2} \)
  *
  * Parameter:
  *   - text: Der Text mit #math-Ausdrücken.
@@ -221,7 +221,7 @@ std::string simplify_inline_math(const std::string& text) {
  * Wandelt alle #blockmath(...)-Makros in LaTeX-Block-Mathe (\[...\]) um.
  *
  * Beispiel:
- *   #blockmath(frac(1, 2)) -> \[ \frac{1}{2} \]
+ *   #blockmath(\frac(1, 2)) -> \[ \frac{1}{2} \]
  *
  * Parameter:
  *   - text: Der Text mit #blockmath-Ausdrücken.
@@ -234,34 +234,4 @@ std::string simplify_block_math(const std::string& text) {
 }
 
 
-
-/**
- * Führt alle bekannten Makrovereinfachungen im Text aus.
- *
- * Diese Funktion verarbeitet vordefinierte mathematische Makros wie `frac`, `sqrt`, `abs` usw.,
- * sowie Inline- und Block-Mathematik (#math, #blockmath) und Codeblöcke (#codeblock).
- *
- * Beispiel:
- *   Eingabe: #math(frac(1, sqrt(2))) -> Ausgabe: \(\frac{1}{\sqrt{2}}\)
- *
- * Parameter:
- *   - input: Der ursprüngliche Text mit Makros.
- *
- * Rückgabe:
- *   - Der vereinfachte Text mit allen Makros ersetzt durch gültige LaTeX-Syntax.
- */
-std::string simplify_all_macros(const std::string& input, const std::string& macros_path){
-    
-    std::string result = input;
-    std::unordered_map<std::string, MacroSpec> macros = load_macros_from_file(macros_path);
-
-    for (const auto& [key, spec] : macros) {
-        result = simplify_macro_spec(result, spec);
-    }
-
-    result = simplify_inline_math(result);
-    result = simplify_block_math(result);
-    result = simplify_codeblocks(result);
-    return result;
-}
 

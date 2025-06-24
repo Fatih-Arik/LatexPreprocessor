@@ -1,7 +1,6 @@
 #include "file_utils.h"
 
 
-
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -64,7 +63,7 @@ nlohmann::json read_json_config(const std::string& filename) {
     std::cout << "Lade JSON aus: " << filename << "\n";
     std::ifstream file(filename);
     if (!file) {
-        std::cerr << "+++ Fehler: Konnte: " << filename << "sein +++\n";
+        std::cerr << "+++ Fehler könnte: " << filename << " sein +++\n";
         return nlohmann::json();   // Gibt ein leeres JSON-Objekt zurück
     }
     try {
@@ -84,9 +83,9 @@ nlohmann::json read_json_config(const std::string& filename) {
 //
 // Rückgabe:
 // - Ein unordered_map-Objekt mit dem Inhalt der Datei als Key-Value paaren
-std::unordered_map<std::string, MacroSpec> load_macros_from_file(const std::string& filename) {
+std::unordered_map<std::string, macro_spec> load_macros_from_file(const std::string& filename) {
 
-    std::unordered_map<std::string, MacroSpec> macro_map;
+    std::unordered_map<std::string, macro_spec> macro_map;
     nlohmann::json macro_json;
     macro_json = read_json_config(filename);
 

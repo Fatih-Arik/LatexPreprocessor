@@ -18,4 +18,4 @@ void save_to_file(const std::string& filename, const std::string& content);
 nlohmann::json read_json_config(const std::string& filename);
 
 //Liest den Inhalt von macros.json und gibt den Inhalt als unordered_map zurück
-std::unordered_map<std::string, MacroSpec> load_macros_from_file(const std::string& filename);
+std::unordered_map<std::string, macro_spec> load_macros_from_file(const std::string& filename);

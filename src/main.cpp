@@ -2,27 +2,23 @@
 // LaTeX Preprocessor
 // Autor: [Fatih Arik]
 // Beschreibung: Präprozessor für vereinfachte LaTeX-artige Makros
-// Makro Konfiguration über config/macros.json
+// Makro Konfiguration über config/dynamic_macro.json
 // ------------------------------
 
 
 #include "preprocessor.h"
 #include "file_utils.h"
-#include "converter.h"
-#include "macro_utils.h"
 #include "cli_utils.h"
+#include "macro_handler.h"
 
 
 #include <iostream>
 #include <unordered_map>
-
+#include <string>
 
 
 //#define DEBUG_MODE
 
-#ifdef TEST_MODE
-#include "../tests/test_runner.h"
-#endif
 
 
 void log_step(const std::string& title, const std::string& content) {
@@ -53,31 +49,9 @@ int run_preprocessor(int argc, char* argv[]) {
         return -1;
     }
 
-    log_step("Input File", content);
-
-
-    // Include-Verarbeitung
-    content = process_include(content);
-    log_step("Include processing", content);
-
-    // Extrahierung der Einfachen-Makros
-    std::unordered_map<std::string, std::string> macros = extract_defines(content);
-
-    // process_conditionals
-    content = process_conditionals(content, macros);
-
-    content = replace_text_macros(content, macros);
-    log_step("Text replaced", content);
-    
-
-    // Enterfernen der Defines
-    content = remove_defines(content);
-    log_step("Defines removed", content);
-
-
-    // Auführung der Ersetzung
-    content = simplify_all_macros(content, config.macro_file);
-    log_step("Macros simplified", content);
+    std::unordered_map<std::string, dynamic_macro> all_macros = load_all_macros(config.macro_file);
+    std::unordered_map<std::string, std::string> define_macros = extract_defines(content);
+    content = apply_all_macros(content, all_macros, define_macros);
 
     save_to_file(config.output_file, content);
 
