@@ -37,7 +37,7 @@ Makros wie \frac, \sqrt, \log, \pow etc. werden zur Laufzeit aus einer JSON-Date
 
 ---
 
-Beispiel (`macros.json`):
+Beispiel (`dynamic_macro.json`):
 
 ```json
 {
