@@ -10,7 +10,7 @@
 
 
 
-// Ersetzt alle `\include{"filename"}`-Anweisungen im Text durch den tatsächlichen Inhalt der referenzierten Datei.
+//Ersetzt rekursiv alle \include{...}-Anweisungen im gegebenen Text durch den Inhalt der referenzierten Dateien.
 std::string process_include(const std::string& content);
 
 

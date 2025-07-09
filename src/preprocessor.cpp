@@ -10,16 +10,22 @@
 
 
 /**
- * Ersetzt alle `\include{...}`-Anweisungen im Text durch den Inhalt der referenzierten Datei.
+ * Ersetzt rekursiv alle \include{...}-Anweisungen im gegebenen Text durch den Inhalt
+ * der referenzierten Dateien.
  *
- * Die Funktion verarbeitet den Text zeilenweise und erkennt Zeilen, die mit `\include` beginnen.
- * Der Dateiname wird aus der geschweiften Klammer extrahiert und mit `read_file(...)` geladen.
+ * Die Funktion liest den Eingabetext zeilenweise und prüft, ob eine Zeile mit \include beginnt.
+ * In diesem Fall wird der in geschweiften Klammern angegebene Dateiname extrahiert,
+ * der zugehörige Inhalt mit read_file(...) geladen und anschließend erneut durch
+ * process_include(...) verarbeitet, um verschachtelte Includes zu unterstützen.
+ *
+ * Nicht erkannte oder fehlerhaft formatierte Include-Zeilen bleiben unverändert erhalten.
  *
  * Parameter:
- *     content – Der gesamte LaTeX-Text, in dem `\include`-Makros ersetzt werden sollen.
+ *     content – Der gesamte Eingabetext, in dem \include{...}-Anweisungen verarbeitet werden sollen.
  *
  * Rückgabe:
- *     Ein neuer Text, in dem alle `\include{...}`-Anweisungen ersetzt wurden.
+ *     Ein neuer Text, in dem alle \include-Anweisungen durch den vollständigen, rekursiv
+ *     aufgelösten Dateiinhalt ersetzt wurden.
  */
 std::string process_include(const std::string& content) {
 
@@ -52,13 +58,15 @@ std::string process_include(const std::string& content) {
 
             // Lade Dateiinhalte und füge sie in den Text ein
             included_content = read_file(include_file);
+            //TODO Rekursiver aufruf Include
+            included_content = process_include(included_content);
             result << included_content << "\n";
         }
         else {
             result << line << "\n";
         }
     }
-
+    
     return result.str();
 }
 
@@ -114,6 +122,7 @@ std::unordered_map<std::string, std::string> extract_defines(const std::string& 
         value_close_bracket = line.find("}", value_open_bracket);
 
 
+        // Wenn der Define-Makro einen Value besitzt
         if (value_open_bracket != std::string::npos && value_close_bracket != std::string::npos) {
             std::string value = line.substr(value_open_bracket + 1, value_close_bracket - value_open_bracket - 1);
             macros[key] = value;
