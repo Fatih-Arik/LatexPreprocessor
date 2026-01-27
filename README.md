@@ -48,7 +48,7 @@ Beispiel: mathematische Makros:
 
 ```json
 {
-      "\\frac": {
+    "\\frac": {
       "type": "format",
       "arg_count": 2,
       "replacement": "\\frac{__0__}{__1__}"
