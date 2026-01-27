@@ -1,10 +1,12 @@
 \documentclass{article}
 \usepackage{listings}
 
-%\define{DEBUG}
+
+
+
 
 \title{Mein Dokument}
-\author{}
+\author{NAME}{fontsize=\small, frame=single}
 
 \begin{document}
 \maketitle
@@ -14,38 +16,21 @@ Hallo Welt!
 Mein Name ist \textbf{Max Mustermann} und ich nutze \textit{LaTeX}.
 Und hier ist mehr Text
 
-\section{Mathematik}
-Inline-Mathe: $E = mc^2$  \\
-Mathe: Hier ist ein Text über Mathe \(\frac{\frac{n(n+1)}{ 42}}{ 2}\) und hier geht es weiter.\\  
-
-\(\frac{1}{ \sqrt{2}}\) \\
-
-\(\pow{1}^{ \sqrt{2}}\) \\
-
-Hallo \(\frac{1}{ 2}\) Welt.  
-\[\sqrt{\frac{4}{ \abs{3}}}\]
-
-
-
-\section(Include)
+\frac{1}{2}
+\section{Include}
 Hier ist ein bsp für \include{}
 
 
-\section(Rekursiver Include)
-Hier ist ein bsp für ein \include{} für eine Datei mit wiederum einem \include{}
 
 
 
-\section{Quellcode}
 
-\begin{lstlisting}[language=c++]
-
-#define test 42
-
-\end{lstlisting}
-
+\section{Env}
+\begin{Verbatim}[label=ssh, fontsize=\small, frame=single]
+echo "hi"
+\end{Verbatim}
 
 \section{ifdef}
-hier ist eine Abzweigung
+hier ist ein Bsp für Konditionale Makros!!!
 
 \end{document}

@@ -24,9 +24,6 @@
     "arg_count": 1,
     "replacement": "\\log{__0__}"
   },
-  "#codeblock": {
-    "type": "codeblock"
-  },
   "\\define": {
     "type": "define"
   },
@@ -38,3 +35,4 @@
   }
 }
 
+ 

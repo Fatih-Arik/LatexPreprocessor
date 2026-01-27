@@ -3,71 +3,112 @@
 #include "macro_utils.h"
 
 #include <iostream>
-#include <fstream>
 #include <sstream>
-#include <regex>
 #include <vector>
 
 
 /**
- * Ersetzt rekursiv alle \include{...}-Anweisungen im gegebenen Text durch den Inhalt
- * der referenzierten Dateien.
+ * Ersetzt rekursiv alle \include{...}-Anweisungen durch den Inhalt
+ * der jeweils referenzierten Datei.
  *
- * Die Funktion liest den Eingabetext zeilenweise und prüft, ob eine Zeile mit \include beginnt.
- * In diesem Fall wird der in geschweiften Klammern angegebene Dateiname extrahiert,
- * der zugehörige Inhalt mit read_file(...) geladen und anschließend erneut durch
- * process_include(...) verarbeitet, um verschachtelte Includes zu unterstützen.
+ * Die Verarbeitung erfolgt zeilenbasiert auf SourceLine-Ebene, sodass
+ * Dateiname und originale Zeilennummern erhalten bleiben.
  *
- * Nicht erkannte oder fehlerhaft formatierte Include-Zeilen bleiben unverändert erhalten.
+ * Semantik:
+ *   \include{file.tex}
+ * wird ersetzt durch:
+ *   [Inhalt von file.tex]
  *
- * Parameter:
- *     content – Der gesamte Eingabetext, in dem \include{...}-Anweisungen verarbeitet werden sollen.
+ * Fehler (z. B. Syntaxfehler oder fehlende Dateien) werden im
+ * PreprocReport gesammelt und abbrechfrei behandelt.
  *
- * Rückgabe:
- *     Ein neuer Text, in dem alle \include-Anweisungen durch den vollständigen, rekursiv
- *     aufgelösten Dateiinhalt ersetzt wurden.
+ *
+ * @param content        Eingabetext als Liste von SourceLine
+ * @param report         Zentrale Fehler- und Warnungssammlung
+ * @param include_stack  Aktueller Include-Pfad (zur Zyklenerkennung)
+ * @return               Neuer SourceLine-Vektor mit aufgelösten Includes
  */
-std::string process_include(const std::string& content) {
+std::vector<SourceLine> process_include(const std::vector<SourceLine>& content,
+    PreprocReport& report,
+    std::unordered_set<std::string>& include_stack
+)
+{
+    std::vector<SourceLine> result;
 
-    std::ostringstream result;
-    std::istringstream input(content);
-    std::string line;
-    std::string include_file;
-    std::string included_content;
-    std::size_t open_bracket;
-    std::size_t close_bracket;
+    for (const SourceLine& sl : content) {
 
-    while (std::getline(input, line)) {
+        // Führende Whitespaces entfernen (für \include-Erkennung)
+        std::string trimmed = sl.line;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t"));
 
-        // Prüft, ob die Zeile mit dem Include-Makro beginnt
-        if (line.starts_with("\\include")) {
-
-            // Bestimme die Positionen der geschweiften Klammern
-            open_bracket = line.find("{") + 1;
-            close_bracket = line.find("}", open_bracket);
-
-            // Fehlerbehandlung: Ungültige Klammerpositionen -> Zeile unverändert übernehmen
-            if (open_bracket == std::string::npos || close_bracket == std::string::npos) {
-                std::cerr << "+++ Fehler bei \\include +++ " << "\n";
-                result << line << "\n";
-                continue;
-            }
-
-            // Extrahiere Dateinamen zwischen den Klammern
-            include_file = line.substr(open_bracket, close_bracket - open_bracket);
-
-            // Lade Dateiinhalte und füge sie in den Text ein
-            included_content = read_file(include_file);
-            //TODO Rekursiver aufruf Include
-            included_content = process_include(included_content);
-            result << included_content << "\n";
+        // Keine Include-Zeile → unverändert übernehmen
+        if (!trimmed.starts_with("\\include{")) {
+            result.push_back(sl);
+            continue;
         }
-        else {
-            result << line << "\n";
+
+        // Klammern finden
+        size_t open = trimmed.find('{');
+        size_t close = trimmed.find('}', open + 1);
+
+        if (open == std::string::npos || close == std::string::npos) {
+            report.errors.push_back({
+                sl.file,
+                "Syntaxfehler in \\include: fehlende geschweifte Klammern",
+                sl.line_nr
+            });
+            result.push_back(sl);
+            continue;
         }
+
+        // Dateiname extrahieren
+        std::string filename =
+            trimmed.substr(open + 1, close - open - 1);
+
+        if (filename.empty()) {
+            report.errors.push_back({
+                sl.file,
+                "\\include: Dateiname ist leer",
+                sl.line_nr
+            });
+            result.push_back(sl);
+            continue;
+        }
+
+        // Zyklische Includes erkennen
+        if (include_stack.contains(filename)) {
+            report.errors.push_back({
+                sl.file,
+                "Zyklisches \\include entdeckt: " + filename,
+                sl.line_nr
+            });
+            result.push_back(sl);
+            continue;
+        }
+
+        // Datei lesen
+        std::vector<SourceLine> included = read_file_lines(filename);
+
+        if (included.empty()) {
+            report.errors.push_back({
+                sl.file,
+                "Include-Datei konnte nicht gelesen werden: " + filename,
+                sl.line_nr
+            });
+            result.push_back(sl);
+            continue;
+        }
+
+        // Rekursion mit Stack-Schutz
+        include_stack.insert(filename);
+        included = process_include(included, report, include_stack);
+        include_stack.erase(filename);
+
+        // Inhalt einfügen
+        result.insert(result.end(), included.begin(), included.end());
     }
-    
-    return result.str();
+
+    return result;
 }
 
 
@@ -76,341 +117,370 @@ std::string process_include(const std::string& content) {
  * Extrahiert alle \define-Makros aus dem LaTeX-Quelltext.
  *
  * Beispiele:
- *   \define{AUTHOR}{Max}   → "AUTHOR" → "Max"
- *   \define{DEBUG}         → "DEBUG"  → ""
+ *   \define{AUTHOR}{Max}   -> "AUTHOR" -> "Max"
+ *   \define{DEBUG}         -> "DEBUG" -> ""
  * 
  * Parameter:
- *      content – Der vollständige Eingabetext, in dem nach Makros gesucht wird.
+ *      content – Der vollständige Eingabetext, gespeichert in einem Vector vom Typ-Struct. Jedes Struct enthält eine Zeile, den Namen der Datei und die Zeilennummer. 
  * Rückgabe:
  *      Eine HashMap (unordered_map), die alle gefundenen Makros enthält.
  */
-
-std::unordered_map<std::string, std::string> extract_defines(const std::string& content) {
-    
+std::unordered_map<std::string, std::string> extract_defines(const std::vector<SourceLine>& content, PreprocReport& report)
+{
     std::unordered_map<std::string, std::string> macros;
-    std::istringstream input(content);
 
-    std::string key;
-    std::string value;
-    std::string line;
-    size_t key_open_bracket;
-    size_t key_close_bracket;
-    size_t value_open_bracket;
-    size_t value_close_bracket;
+    for (const SourceLine& sl : content) {
 
-        
-    while (std::getline(input, line)) {
-        
-        if (!line.starts_with("\\define")) {
+        // Führende Leerzeichen entfernen
+        std::string trimmed = sl.line;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t"));
+
+        // Keine Define-Zeile
+        if (!trimmed.starts_with("\\define")) {
             continue;
         }
-        // vom Define-Makro den Key extrahieren
-        key_open_bracket = line.find("{");
-        key_close_bracket = line.find("}", key_open_bracket);
 
-        // Fehlerbehandlung: Ungültige Klammerpositionen
-        if (key_open_bracket == std::string::npos || key_close_bracket == std::string::npos) {
-            std::cerr << "+++ Syntaxfehler in \\define-Zeile (kein Key): " << line << "\n";
+        // Muss mit \define{ beginnen
+        if (!trimmed.starts_with("\\define{")) {
+            report.errors.push_back({
+                sl.file,
+                "Syntaxfehler: Erwartet \\define{KEY}{...}",
+                sl.line_nr
+            });
             continue;
         }
-        // Der Makro Bezeichner soll als Schlüssel des HashMaps gespeichert werden
-        // {wert}
-        key = line.substr(key_open_bracket + 1, key_close_bracket - key_open_bracket - 1);
 
-        //ggf. enthält der Define Makro einen Value 
-        value_open_bracket = line.find("{", key_close_bracket);
-        value_close_bracket = line.find("}", value_open_bracket);
+        // KEY extrahieren
+        size_t key_open = trimmed.find('{');
+        size_t key_close = trimmed.find('}', key_open + 1);
 
-
-        // Wenn der Define-Makro einen Value besitzt
-        if (value_open_bracket != std::string::npos && value_close_bracket != std::string::npos) {
-            std::string value = line.substr(value_open_bracket + 1, value_close_bracket - value_open_bracket - 1);
-            macros[key] = value;
-        }
-        else if (value_open_bracket == std::string::npos && value_close_bracket == std::string::npos) {
-            macros[key] = "";  // Kein Wert
-        }
-        else {
-            std::cerr << "+++ Syntaxfehler in \\define-Zeile (unvollständiger Value): " << line << "\n";
+        if (key_open == std::string::npos || key_close == std::string::npos) {
+            report.errors.push_back({
+                sl.file,
+                "Syntaxfehler: \\define ohne korrekt geschlossenen KEY",
+                sl.line_nr
+            });
             continue;
         }
+
+        std::string key =
+            trimmed.substr(key_open + 1, key_close - key_open - 1);
+
+
+
+        // KEY darf keine geschweiften Klammern enthalten
+        if (key.find('{') != std::string::npos ||
+            key.find('}') != std::string::npos) {
+            report.errors.push_back({
+                sl.file,
+                "Syntaxfehler: Ungültiger Makro-Name in \\define (verschachtelte Klammern)",
+                sl.line_nr
+            });
+            continue;
+        }
+
+        if (key.empty()) {
+            report.errors.push_back({
+                sl.file,
+                "Syntaxfehler: KEY darf nicht leer sein",
+                sl.line_nr
+            });
+            continue;
+        }
+
+        // ggf. VALUE extrahieren 
+        std::string value;
+        size_t pos = key_close + 1;
+
+        // Bounds-Check
+        if (pos < trimmed.size() && trimmed[pos] == '{') {
+
+            size_t val_open = pos;
+            size_t val_close = trimmed.find('}', val_open + 1);
+
+            if (val_close == std::string::npos) {
+                report.errors.push_back({
+                    sl.file,
+                    "Syntaxfehler: Unvollständige Value-Klammern in \\define",
+                    sl.line_nr
+                });
+                continue;
+            }
+
+            value = trimmed.substr(
+                val_open + 1,
+                val_close - val_open - 1
+            );
+        }
+        // else: kein Value → value bleibt ""
+
+        // Doppelte Keys
+        if (macros.contains(key)) {
+            report.errors.push_back({
+                sl.file,
+                "Warnung: Makro '" + key + "' wird überschrieben",
+                sl.line_nr
+            });
+        }
+
+        macros[key] = value;
+    } 
     
-    }
-
-    return macros; // Gibt die HashMap mit allen gefundenen Makros zurück
+    return macros;
 }
 
 
 /**
- * Ersetzt im Text alle Makronamen durch ihre zugehörigen Werte aus der Makro-Tabelle.
+ * Entfernt alle syntaktisch erkannten \define{...}-Anweisungen aus dem Quelltext.
  *
- * Jeder Eintrag im Makro-Dictionary (z. B. "NAME" -> "Max Mustermann") wird im gesamten Text
- * durch den entsprechenden Wert ersetzt – allerdings nur bei exakten Wortübereinstimmungen.
+ * Die Funktion arbeitet zeilenbasiert auf einer Liste von SourceLine-Objekten
+ * und entfernt ausschließlich Zeilen, die nach Entfernen führender Leerzeichen,
+ * mit "\define{" beginnen.
  *
- * Beispiel:
- *     Vorher: "Mein Name ist NAME."
- *     Makro:  {"NAME": "Max Mustermann"}
- *     Nachher: "Mein Name ist Max Mustermann."
+ * Es findet keine Syntaxprüfung statt; fehlerhafte \define-Anweisungen werden
+ * unverändert beibehalten. Die eigentliche Validierung erfolgt in extract_defines().
  *
  * Parameter:
- *     text    – Der zu bearbeitende Eingabetext.
- *     macros  – Eine HashMap mit allen definierten Makros und ihren Ersetzungen.
+ *   content - Vektor von SourceLine-Strukturen (Text, Datei, originale Zeilennummer)
  *
  * Rückgabe:
- *     Der verarbeitete Text mit allen Makro-Ersetzungen.
+ *   Neuer Vektor von SourceLine ohne \define-Zeilen.
+ *   Die ursprünglichen Dateinamen und Zeilennummern bleiben erhalten.
  */
+std::vector<SourceLine> remove_defines(const std::vector<SourceLine>& content) {
+    std::vector<SourceLine> result;
+    result.reserve(content.size());
 
-std::string replace_text_macros(
-    const std::string& text,
-    const std::unordered_map<std::string, std::string>& macros)
-{
-    std::string result = text;
+    for (const SourceLine& sl : content) {
 
-    for (const auto& [key, value] : macros) {
-        // \bKEY\b   -> exakte Wortübereinstimmung (KEY als ganzes Wort)
-        std::string pattern_str = "\\b" + key + "\\b";
-        std::regex pattern(pattern_str);
+        // Führende Whitespaces entfernen (Indentierung ignorieren)
+        std::string trimmed = sl.line;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t"));
 
-        result = std::regex_replace(result, pattern, value);
+        // Nur echte \define{...}-Zeilen entfernen
+        if (!trimmed.starts_with("\\define{")) {
+            result.push_back(sl);
+        }
     }
-    
+
     return result;
 }
 
+
+
+namespace {
+
+    /**
+     * Prüft, ob ein Zeichen Teil eines Bezeichners ist.
+     *
+     * Als Bezeichnerzeichen gelten:
+     *  - Buchstaben (A–Z, a–z)
+     *  - Ziffern (0–9)
+     *  - Unterstrich (_)
+     *
+     * Diese Definition wird verwendet, um Wortgrenzen zu erkennen
+     * und Teilersetzungen (z. B. AUTHOR in AUTHOR_NAME) zu vermeiden.
+     */
+    bool is_ident_char(unsigned char c) {
+        return std::isalnum(c) || c == '_';
+    }
+
+} // anonymer Namespace
+
+
 /**
- * Entfernt alle `\define`-Makros aus dem Text.
+ * Ersetzt im Text alle Makronamen durch ihre zugehörigen Werte aus der \define-Tabelle.
  *
- * Dabei wird jede Zeile, die mit `\define` beginnt, vollständig entfernt.
+ * Dabei werden ausschließlich exakte Bezeichner ersetzt. Ein Makro wird nur dann
+ * ersetzt, wenn links und rechts keine weiteren Bezeichnerzeichen angrenzen.
+ *
+ * Beispiel:
+ *   Text:    "AUTHOR_NAME ist AUTHOR."
+ *   Defines: {"AUTHOR" -> "Max"}
+ *   Ergebnis: "AUTHOR_NAME ist Max."
  *
  * Parameter:
- *     text – Der gesamte LaTeX-Eingabetext.
+ *   text    – Eingabetext als Vektor von SourceLine-Strukturen
+ *   macros  – HashMap mit \define-Makros (Key -> Value)
  *
  * Rückgabe:
- *     Der bereinigte Text ohne `\define`-Makros.
+ *   Neuer Vektor von SourceLine mit ersetzten Makros
  */
-std::string remove_defines(const std::string& text) {
-    std::istringstream input_stream(text);
-    std::ostringstream output_stream;
-    std::string line;
+std::vector<SourceLine> replace_text_macros(
+    const std::vector<SourceLine>& text,
+    const std::unordered_map<std::string, std::string>& macros)
+{
+    // Kopie, damit Originaldaten erhalten bleiben
+    std::vector<SourceLine> result = text;
 
-    while (std::getline(input_stream, line)) {
-        // Zeilen, die mit "\define" beginnen, überspringen
-        if (line.starts_with("\\define")) {
+    // Für jedes definierte Makro
+    for (const auto& [key, value] : macros) {
+
+        if (key.empty()) {
             continue;
         }
 
-        output_stream << line << '\n';
+        // Jede Zeile separat verarbeiten
+        for (SourceLine& sl : result) {
+
+            size_t pos = 0;
+
+            // Alle Vorkommen des Makros in der Zeile finden
+            while ((pos = sl.line.find(key, pos)) != std::string::npos) {
+
+                // Linke Wortgrenze prüfen
+                bool left_ok =
+                    (pos == 0) ||
+                    !is_ident_char(static_cast<unsigned char>(sl.line[pos - 1]));
+
+                // Rechte Wortgrenze prüfen
+                size_t right_index = pos + key.size();
+                bool right_ok =
+                    (right_index >= sl.line.size()) ||
+                    !is_ident_char(static_cast<unsigned char>(sl.line[right_index]));
+
+                if (left_ok && right_ok) {
+                    // Exakter Treffer → ersetzen
+                    sl.line.replace(pos, key.size(), value);
+                    pos += value.size(); // hinter die Ersetzung springen
+                }
+                else {
+                    // Kein exakter Treffer → weiter suchen
+                    pos += key.size();
+                }
+            }
+        }
     }
 
-    return output_stream.str();
+    return result;
 }
 
 
 /**
  * Verarbeitet \ifdef-Blöcke mit optionalem \else.
- * Aktuell keine Verschachtelung.
+ *
+ * Einschränkungen:
+ * - Keine Verschachtelung von \ifdef-Blöcken erlaubt
+ * - Bedingungen prüfen ausschließlich auf Existenz in `defines`
  *
  * Parameter:
- *   text     – Eingabetext (LaTeX-ähnlich)
- *   defines  – Vorher definierte Makros (\define)
+ *   text     – Quelltext als Liste von SourceLine (inkl. Datei & Zeilennummer)
+ *   defines  – zuvor extrahierte \define-Makros
+ *   report   – Fehler- und Warnungssammlung
  *
  * Rückgabe:
- *   Gefilterter Text (nur gültige Teile der Ifdef-Blöcke bleiben erhalten)
+ *   Gefilterter Text mit entfernten/aktivierten Ifdef-Blöcken
  */
-std::string process_conditionals(const std::string& text, const std::unordered_map<std::string, std::string>& defines) {
-    std::istringstream stream(text);
-    std::ostringstream output;
-    std::string line;
+std::vector<SourceLine> process_conditionals(
+    const std::vector<SourceLine>& text,
+    const std::unordered_map<std::string, std::string>& defines,
+    PreprocReport& report
+) {
+    std::vector<SourceLine> result;
 
-    bool inside_if_block = false;    // Aktuell innerhalb eines \ifdef?
-    bool skip_if_block = false;      // Soll dieser Block aktuell übersprungen werden?
+    bool inside_if_block = false;
+    bool skip_if_block = false;
 
-    while (std::getline(stream, line)) {
+    int if_start_line = -1;
+    std::string if_start_file;
 
-        // Block-Beginn: \ifdef
-        if (!inside_if_block && line.find(R"(\ifdef{)") != std::string::npos) {
-            size_t start = line.find('{') + 1;
-            size_t end = line.find('}', start);
-            std::string current_macro = line.substr(start, end - start);
+    for (const SourceLine& sl : text) {
+
+        // Führende Whitespaces entfernen (Direktiven tolerant erkennen)
+        std::string trimmed = sl.line;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t"));
+
+        // ---------- \ifdef ----------
+        if (trimmed.starts_with("\\ifdef{")) {
+
+            if (inside_if_block) {
+                report.errors.push_back({
+                    sl.file,
+                    "Verschachtelte \\ifdef-Blöcke werden nicht unterstützt",
+                    sl.line_nr
+                });
+                continue;
+            }
+
+            size_t open = trimmed.find('{');
+            size_t close = trimmed.find('}', open + 1);
+
+            // Ungültige oder leere Bedingung
+            if (open == std::string::npos || close == std::string::npos || close <= open + 1) {
+                report.errors.push_back({
+                    sl.file,
+                    "Syntaxfehler in \\ifdef: Erwartet \\ifdef{NAME}",
+                    sl.line_nr
+                });
+                result.push_back(sl);
+                continue;
+            }
+
+            std::string macro = trimmed.substr(open + 1, close - open - 1);
 
             inside_if_block = true;
+            skip_if_block = (defines.find(macro) == defines.end());
 
-            // Prüfe, ob das Makro definiert ist
-            skip_if_block = defines.find(current_macro) == defines.end();
+            if_start_line = sl.line_nr;
+            if_start_file = sl.file;
+            continue;
         }
 
-        // Innerhalb eines Ifdef-Blocks: \else
-        else if (inside_if_block && line.find(R"(\else)") != std::string::npos) {
-            // Beim \else einfach die Logik umdrehen
+        // ---------- \else ----------
+        if (trimmed == "\\else") {
+
+            if (!inside_if_block) {
+                report.errors.push_back({
+                    sl.file,
+                    "\\else ohne vorheriges \\ifdef",
+                    sl.line_nr
+                });
+                continue;
+            }
+
             skip_if_block = !skip_if_block;
+            continue;
         }
 
-        // Block-Ende: \endif
-        else if (inside_if_block && line.find(R"(\endif)") != std::string::npos) {
+        // ---------- \endif ----------
+        if (trimmed == "\\endif") {
+
+            if (!inside_if_block) {
+                report.errors.push_back({
+                    sl.file,
+                    "\\endif ohne vorheriges \\ifdef",
+                    sl.line_nr
+                });
+            }
+
             inside_if_block = false;
-        }
-
-        // Zeilenausgabe: nur wenn erlaubt
-        else {
-            if (!inside_if_block || !skip_if_block) {
-                output << line << "\n";
-            }
-            // (ansonsten, Zeile wird einfach ignoriert)
-        }
-    }
-
-    return output.str();
-}
-
-
-
-
-
-/**
- * Extrahiert die Programmiersprache aus einem Codeblock-Makro wie z. B.:
- *     #codeblock[cpp]{...}
- *
- * Parameter:
- * - text:        Der vollständige Quelltext.
- * - start_pos:   Startposition des Makros im Text (z. B. Position von "#codeblock[").
- * - lang_end_pos: Rückgabeparameter – Position der schließenden eckigen Klammer `]`.
- *
- * Rückgabewert:
- * - Sprachname wie "cpp", "python", "java" usw.
- * - Gibt einen leeren String zurück, falls keine schließende Klammer `]` gefunden wurde.
- */
-std::string extract_language(const std::string& text, size_t start_pos, size_t& lang_end_pos) {
-    size_t lang_start = start_pos + std::string("#codeblock[").length(); // Position nach '['
-    size_t lang_end = text.find(']', lang_start); // Suche nach schließender Klammer
-
-    if (lang_end == std::string::npos) {
-        lang_end_pos = lang_end;
-        return "";  // Fehler: Kein ']' gefunden
-    }
-    lang_end_pos = lang_end;  // Rückgabe der Position von ']'
-    return text.substr(lang_start, lang_end - lang_start); // Sprachname extrahieren
-}
-
-
-
-
-/**
- * Extrahiert den Inhalt eines Codeblocks aus einem Makro wie:
- *     #codeblock[cpp]{ ... }
- *
- * Parameter:
- * - text:       Der vollständige Eingabetext.
- * - start_pos:  Die Position der öffnenden geschweiften Klammer `{`.
- * - end_pos:    Referenz: Rückgabe der Position der passenden schließenden Klammer `}`.
- *
- * Rückgabewert:
- * - Der extrahierte Quellcode zwischen `{` und `}`.
- * - Gibt einen leeren String zurück, wenn keine passende schließende Klammer gefunden wurde.
- */
-std::string extract_codeblock_body(const std::string& text, size_t start_pos, size_t& end_pos) {
-    int brace_depth = 0;
-    std::string code;
-    bool in_block = false;
-
-    for (size_t i = start_pos; i < text.size(); ++i) {
-        char c = text[i];
-
-        if (c == '{') {
-            brace_depth++;
-            if (!in_block) {
-                in_block = true; // Start der Blockextraktion
-                continue;        // Erste öffnende Klammer nicht miterfassen
-            }
-        }
-        else if (c == '}') {
-            brace_depth--;
-            if (brace_depth == 0) {
-                end_pos = i;     // Block endet
-                return code;
-            }
-        }
-
-        if (in_block) {
-            code += c;
-        }
-    }
-
-    // Falls keine passende schließende Klammer gefunden wurde
-    end_pos = text.size();
-    return "";
-}
-
-
-/**
- * Wandelt alle #codeblock[language]{...}-Makros in LaTeX \lstlisting-Umgebungen um.
- *
- * Beispiel:
- *     #codeblock[cpp]{int main() { return 0; }}
- *     -> \begin{lstlisting}[language=cpp]
- *         int main() { return 0; }
- *       \end{lstlisting}
- *
- * Parameter:
- * - input: Der vollständige Eingabetext mit potenziellen Codeblöcken.
- *
- * Rückgabe:
- * - Der Text, in dem alle Codeblock-Makros durch LaTeX-kompatible Listings ersetzt wurden.
- */
-std::string simplify_codeblocks(const std::string& input) {
-    
-    std::string result = input;
-    std::string code = "";
-    std::string latex_block = "";
-    std::string language = "";
-    size_t pos = 0;
-    size_t lang_end = 0;
-    size_t brace_start = 0;
-    size_t brace_end = 0; 
-
-
-    while ((pos = result.find("#codeblock[", pos)) != std::string::npos) {
-
-        language = extract_language(result, pos, lang_end);
-       
-        if (lang_end == std::string::npos) {
-
-            pos += 1;  // ungültige Syntax -> weiter
+            skip_if_block = false;
+            if_start_line = -1;
+            if_start_file.clear();
             continue;
         }
 
-    
-
-        // Suchen nach der öffnenden geschweiften Klammer '{'
-        brace_start = result.find('{', lang_end);
-        if (brace_start == std::string::npos) {
-            std::cerr << "+++ Fehler beim Finden der geöffneten Klammer [ { ] +++ " << "\n";
-            pos += 1;
-            continue;
+        // ---------- Normale Zeilen ----------
+        if (!inside_if_block || !skip_if_block) {
+            result.push_back(sl);
         }
+    }
 
-        // Extrahiere den Quellcode-Block
-        brace_end = 0;
-        code = extract_codeblock_body(result, brace_start, brace_end);
-
-        if (code.empty()) {
-            std::cerr << "+++ Fehler beim Code Block +++ " << "\n";
-            pos += 1;  // Ungültiger oder unvollständiger Block
-            continue;
-        }
-
-        // Latex-Befehl erzeugen
-        latex_block =
-            "\\begin{lstlisting}[language=" + language + "]\n" +
-            code + "\n\\end{lstlisting}";
-
-        // Ersetzen des ursprünglichen Makros durch das LaTeX-Listing
-        result.replace(pos, brace_end - pos + 1, latex_block);
-
-        // Weiter hinter dem eingefügten Block
-        pos += latex_block.length();
+    // Fehlendes \endif am Dateiende
+    if (inside_if_block) {
+        report.errors.push_back({
+            if_start_file,
+            "Fehlendes \\endif für \\ifdef (Beginn in Zeile " +
+            std::to_string(if_start_line) + ")",
+            if_start_line
+        });
     }
 
     return result;
 }
+
+
+
+
 
 

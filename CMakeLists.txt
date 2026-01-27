@@ -1,87 +1,108 @@
-# Mindestversion von CMake, die für dieses Projekt benötigt wird.
+# ============================================================
+# Mindestversion von CMake
+# ============================================================
 cmake_minimum_required(VERSION 3.16)
 
-# Projektname und interne Buildsystem-Version
-project(LatexPreprocessor VERSION 1.0 LANGUAGES CXX)
+# ============================================================
+# Projektdefinition
+# ============================================================
+project(LatexPreprocessor
+    VERSION 1.0
+    LANGUAGES CXX
+)
 
+# ============================================================
+# Globale Compile-Definitionen
+# ============================================================
 
-# Definiert zur Kompilierzeit eine globale Konstante PROJECT_DIR
-# Wird im C++-Code als Pfad zur Projektwurzel verwendet
+# PROJECT_DIR verweist zur Compile-Zeit auf die Projektwurzel
+# und wird im Code z. B. für Default-Pfade verwendet
 add_compile_definitions(PROJECT_DIR="${CMAKE_SOURCE_DIR}")
 
-
-# C++20 aktivieren (erforderlich für std::filesystem und modernes C++)
+# ============================================================
+# C++-Standard
+# ============================================================
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)  # Keine Compiler-spezifischen Erweiterungen
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Eigenen Include-Ordner angeben 
-include_directories(include)
-
-# Alle Quellcode-Dateien für das Hauptprogramm (Produktionscode)
+# ============================================================
+# Haupt-Executable
+# ============================================================
 add_executable(latexprepro
     src/main.cpp
     src/cli_utils.cpp
-    src/converter.cpp
     src/file_utils.cpp
     src/macro_utils.cpp
     src/preprocessor.cpp
     src/macro_handler.cpp
 )
 
-# Compilerwarnungen für GCC und Clang aktivieren 
+# Include-Verzeichnisse gezielt pro Target setzen
+target_include_directories(latexprepro
+    PRIVATE
+        include
+)
+
+# Compiler-Warnungen (nur für GCC / Clang)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(latexprepro PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(latexprepro PRIVATE
+        -Wall
+        -Wextra
+        -pedantic
+    )
 endif()
 
-
-
-
-
 # ============================================================
-# OPTIONALER TEST-BUILD (wird nur gebaut, wenn BUILD_TESTS=ON)
+# OPTIONALE TESTS
 # ============================================================
-
-# Definiert eine Option namens BUILD_TESTS.
-# Diese kann beim Aufruf von CMake aktiviert oder deaktiviert werden.
-# Standardmäßig ist sie "on", also werden Tests standardmäßig mitgebaut.
-option(BUILD_TESTS "Build test suite" on)
+option(BUILD_TESTS "Build unit tests" ON)
 
 if (BUILD_TESTS)
-    # Aktiviert die CMake-Testfunktionalität (z. B. für 'ctest').
     enable_testing()
 
-    # Deklariert das Catch2-Projekt, das per Git heruntergeladen werden soll.
     include(FetchContent)
+
     FetchContent_Declare(
-      catch2
-      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-      GIT_TAG v3.5.2
+        catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.8.1
     )
-    # Lädt und macht das Catch2-Projekt verfügbar.
+
     FetchContent_MakeAvailable(catch2)
 
-    # Erstellt das Test-Executable namens test_runner mit den angegebenen Quellcodedateien.
     add_executable(test_runner
-        tests/test_runner.cpp
+        tests/test_conditionals.cpp
+        tests/test_defines.cpp
+        tests/test_format_macro.cpp
+        tests/test_include.cpp
+        tests/test_replace_text_macros.cpp
+
+        # Produktionscode wird wiederverwendet
         src/cli_utils.cpp
-        src/converter.cpp
         src/file_utils.cpp
         src/macro_utils.cpp
         src/preprocessor.cpp
         src/macro_handler.cpp
     )
-    #Legt fest, dass der `include/`-Ordner für den Compiler sichtbar ist.
-    target_include_directories(test_runner PRIVATE include)
 
-    # Verlinkt das Catch2-Test-Framework mit dem Test-Executable.
-    target_link_libraries(test_runner PRIVATE Catch2::Catch2WithMain)
+    target_include_directories(test_runner
+        PRIVATE
+            include
+    )
 
-    # Wenn der verwendete Compiler GCC oder Clang ist
+    target_link_libraries(test_runner
+        PRIVATE
+            Catch2::Catch2WithMain
+    )
+
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(test_runner PRIVATE -Wall -Wextra -pedantic)
+        target_compile_options(test_runner PRIVATE
+            -Wall
+            -Wextra
+            -pedantic
+        )
     endif()
 
-    # Fügt den Test dem CMake-Testsystem hinzu (ausführbar über `ctest`).
     add_test(NAME unit_tests COMMAND test_runner)
 endif()

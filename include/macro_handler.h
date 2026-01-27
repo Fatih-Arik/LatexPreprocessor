@@ -1,5 +1,7 @@
 #pragma once
 
+#include "source_line.h"
+#include "error_collector.h"
 
 #include <string>
 #include <unordered_map>
@@ -19,10 +21,10 @@ enum class macro_type {
  * Diese Makros werden aus einer JSON-Datei geladen und können beliebige Regeln enthalten.
  */
 struct dynamic_macro {
-    macro_type type;          // Typ des Makros (macro_type)
-    std::string name;         // Makroname, z. B. \frac oder #codeblock
-    size_t arg_count = 0;     // Anzahl der Argumente für Format-Makros
-    std::string replacement;       // Ersatztext (z. B. \frac{__0__}{__1__})
+    macro_type type = macro_type::Format; // Typ des Makros (macro_type) | default = Format
+    std::string name;                     // Makroname, z. B. \frac oder #codeblock
+    size_t arg_count = 0;                 // Anzahl der Argumente für Format-Makros
+    std::string replacement;              // Ersatztext (z. B. \frac{__0__}{__1__})
 };
 
 /**
@@ -33,8 +35,10 @@ std::unordered_map<std::string, dynamic_macro> load_all_macros(const std::string
 /**
  * Wendet alle erkannten Makros (Format und Logik) auf den Eingabetext an.
  */
-std::string apply_all_macros(const std::string& input_text,
+std::vector<SourceLine> apply_all_macros(const std::vector<SourceLine>& content,
     const std::unordered_map<std::string, dynamic_macro>& macros,
-    const std::unordered_map<std::string, std::string>& defines);
+    const std::unordered_map<std::string, std::string>& defines,
+    PreprocReport& report
+);
 
 
