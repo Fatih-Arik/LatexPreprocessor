@@ -70,31 +70,25 @@ std::vector<SourceLine> apply_all_macros(
     PreprocReport& report)
 {
     std::vector<SourceLine> result = content;
-    std::unordered_set<std::string> include_stack;
-
-    // 1. Includes (können weitere Makros enthalten)
-    if (macros.contains("\\include")) {
-        result = process_include(result, report, include_stack);
-    }
 
 
-    // 2. Defines entfernen
+
+    // Defines entfernen
     if (macros.contains("\\define")) {
         result = remove_defines(result);
     }
 
-    // 3. Bedingungen (\ifdef)
-    if (!defines.empty() && macros.contains("\\ifdef")) {
+    // Bedingungen (\ifdef)
+    if (macros.contains("\\ifdef")) {
         result = process_conditionals(result, defines, report);
+    }
+
+    if (!defines.empty()) {
         result = replace_text_macros(result, defines);
     }
   
-    //// 4. codeblöcke (z. b. #codeblock[cpp])
-    //if (macros.contains("#codeblock")) {
-    //    result = simplify_codeblocks(result);
-    //}
 
-    // 5. Formatmakros wie \frac, \sqrt usw.
+    //  Formatmakros wie \frac, \sqrt usw.
     for (const auto& [name, macro] : macros) {
         if (macro.type == macro_type::Format) {
             macro_spec spec{
@@ -107,12 +101,6 @@ std::vector<SourceLine> apply_all_macros(
         }
     }
 
-    //// 6. Math-Wrappers 
-    //result = simplify_inline_math(result);
-    //result = simplify_block_math(result);
- /*   for (auto& r : result) {
-        std::cout << r.line << "\n";
-    }*/
     return result;
 }
 

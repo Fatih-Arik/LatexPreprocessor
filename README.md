@@ -147,7 +147,7 @@ Nur im Debug sichtbar.
 Beispiel:
 
 ```
-Fehler in main.tex: Zeile 12
+[Fehler] in main.tex - Zeile 12: 
 Syntaxfehler: \\define ohne korrekt geschlossenen KEY
 
 ```

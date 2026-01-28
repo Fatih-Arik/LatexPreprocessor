@@ -22,7 +22,7 @@ std::filesystem::path get_default_macro_path() {
  * Liefert den Standardpfad zur Ausgabedatei.
  */
 std::filesystem::path get_default_output_path() {
-    return std::filesystem::path(PROJECT_DIR) / "output" / "test_output.tex";
+    return std::filesystem::path(PROJECT_DIR) / "output" / "output.tex";
 }
 
 

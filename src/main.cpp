@@ -66,13 +66,20 @@ int run_preprocessor(int argc, char* argv[]) {
     }
 
     PreprocReport report;
+   
 
     // Makros aus JSON laden
     std::unordered_map<std::string, dynamic_macro> all_macros = load_all_macros(config.macro_file);
 
+
+    std::unordered_set<std::string> include_stack;
+    content = process_include(content, report, include_stack);
+
+
     // \define-Makros aus dem Text extrahieren
     std::unordered_map<std::string, std::string> define_macros = extract_defines(content, report);
 
+     
     // Alle Makros anwenden
     content = apply_all_macros(content, all_macros, define_macros, report);
 

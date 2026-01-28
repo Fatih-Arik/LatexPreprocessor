@@ -216,11 +216,7 @@ std::unordered_map<std::string, std::string> extract_defines(const std::vector<S
 
         // Doppelte Keys
         if (macros.contains(key)) {
-            report.errors.push_back({
-                sl.file,
-                "Warnung: Makro '" + key + "' wird überschrieben",
-                sl.line_nr
-            });
+            std::cout << "Warnung: Makro '" + key + "' wird überschrieben" << "\n";
         }
 
         macros[key] = value;
@@ -249,8 +245,7 @@ std::unordered_map<std::string, std::string> extract_defines(const std::vector<S
  */
 std::vector<SourceLine> remove_defines(const std::vector<SourceLine>& content) {
     std::vector<SourceLine> result;
-    result.reserve(content.size());
-
+   
     for (const SourceLine& sl : content) {
 
         // Führende Whitespaces entfernen (Indentierung ignorieren)
