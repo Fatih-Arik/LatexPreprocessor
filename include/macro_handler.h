@@ -10,7 +10,6 @@
 // Makrotyp zur Unterscheidung von Format- und Logik-Makros
 enum class macro_type {
     Format,       // z. B. \frac, \sqrt 
-    Codeblock,    // z. B. #codeblock[lang]{...}
     Conditional,  // \ifdef{...}...\else...\endif
     Include,      // \include{"datei.tex"}
     Define        // \define{KEY}, \define{KEY}{VAL}
@@ -22,7 +21,7 @@ enum class macro_type {
  */
 struct dynamic_macro {
     macro_type type = macro_type::Format; // Typ des Makros (macro_type) | default = Format
-    std::string name;                     // Makroname, z. B. \frac oder #codeblock
+    std::string name;                     // Makroname, z. B. \frac 
     size_t arg_count = 0;                 // Anzahl der Argumente für Format-Makros
     std::string replacement;              // Ersatztext (z. B. \frac{__0__}{__1__})
 };

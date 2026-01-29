@@ -13,7 +13,7 @@
 /**
     Lädt alle dynamischen Makros aus einer JSON-Datei (z. B. dynamic_macro.json).
 
-    Unterstützt folgende Typen: format, define, include, conditional, codeblock.
+    Unterstützt folgende Typen: format, define, include, conditional.
 
     Parameter: Pfad zur Konfigurationsdatei
     Rückgabe: Map vom Makronamen zum zugehörigen DynamicMacro-Eintrag.
@@ -43,9 +43,6 @@ std::unordered_map<std::string, dynamic_macro> load_all_macros(const std::string
         }
         else if (type == "conditional") {
             macro.type = macro_type::Conditional;
-        }
-        else if (type == "codeblock") {
-            macro.type = macro_type::Codeblock;
         }
         else {
             std::cerr << "Unbekannter makro_typ: " << type << "\n";
