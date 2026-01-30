@@ -95,7 +95,7 @@ nlohmann::json read_json_config(const std::string& filename) {
     std::cout << "Lade JSON aus: " << filename << "\n";
     std::ifstream file(filename);
     if (!file) {
-        std::cerr << "+++ Fehler konnte: " << filename << " nicht einlesen +++\n";
+        std::cerr << "[Fehler] Makrodatei nicht gefunden: " << filename << "\n";
         return nlohmann::json();   // Gibt ein leeres JSON-Objekt zurück
     }
     try {
@@ -104,7 +104,7 @@ nlohmann::json read_json_config(const std::string& filename) {
         return config;
     }
     catch (const std::exception& e) {
-        std::cerr << "+++ Fehler beim Parsen der JSON-Datei: " << e.what() << "\n";
+        std::cerr << "[Fehler] Ungültige JSON-Datei: " << e.what() << "\n";
         return nlohmann::json();
     }
 }

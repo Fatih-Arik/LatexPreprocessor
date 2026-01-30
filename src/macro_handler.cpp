@@ -18,9 +18,19 @@
     Parameter: Pfad zur Konfigurationsdatei
     Rückgabe: Map vom Makronamen zum zugehörigen DynamicMacro-Eintrag.
 */
-std::unordered_map<std::string, dynamic_macro> load_all_macros(const std::string& path) {
+std::unordered_map<std::string, dynamic_macro> load_all_macros(const std::string& path, PreprocReport& report) {
+
     std::unordered_map<std::string, dynamic_macro> result;
     nlohmann::json json_data = read_json_config(path);
+
+    if (json_data == nlohmann::json()) {
+        report.errors.push_back({
+            path,
+            "Makrodatei konnte nicht geladen werden",
+            -1
+        });
+        return{};
+    }
 
     for (const auto& [name, entry] : json_data.items()) {
         

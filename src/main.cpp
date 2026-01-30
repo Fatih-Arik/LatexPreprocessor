@@ -69,7 +69,7 @@ int run_preprocessor(int argc, char* argv[]) {
    
 
     // Makros aus JSON laden
-    std::unordered_map<std::string, dynamic_macro> all_macros = load_all_macros(config.macro_file);
+    std::unordered_map<std::string, dynamic_macro> all_macros = load_all_macros(config.macro_file, report);
 
 
     std::unordered_set<std::string> include_stack;

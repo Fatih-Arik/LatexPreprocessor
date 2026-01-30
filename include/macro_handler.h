@@ -29,7 +29,7 @@ struct dynamic_macro {
 /**
  * Lädt alle dynamischen Makros aus einer JSON-Konfigurationsdatei.
  */
-std::unordered_map<std::string, dynamic_macro> load_all_macros(const std::string& path);
+std::unordered_map<std::string, dynamic_macro> load_all_macros(const std::string& path, PreprocReport& report);
 
 /**
  * Wendet alle erkannten Makros (Format und Logik) auf den Eingabetext an.
